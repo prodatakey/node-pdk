@@ -15,15 +15,15 @@ const acompose = (fn, ...rest) =>
     : fn;
 
 (async function() {
-  let tokenset = await authenticate({
-    client_id: process.env.PDK_CLIENT_ID,
-    client_secret: process.env.PDK_CLIENT_SECRET,
-  });
-  const authsession = makesession(tokenset.id_token, 'https://accounts.pdk.io/api/');
+  let tokenset = await authenticate(
+    process.env.PDK_CLIENT_ID,
+    process.env.PDK_CLIENT_SECRET,
+  );
+  const authsession = makesession(tokenset.id_token);
 
   const getDevices = async (panelsession) => {
     try {
-      return (await panelsession('devices')).body;
+      return await panelsession('devices');
     } catch (err) {
       return [];
     }
@@ -38,18 +38,17 @@ const acompose = (fn, ...rest) =>
       `${uri}api/`
     );
 
-    // Test the CloudNode connectivity
+    // Get the list of configured devices
     let connected = false;
+    let devices = [];
     try {
-      await panelsession('config');
+      devices = await getDevices(panelsession)
       connected = true;
     } catch(err) {
       console.log('Unable to negotiate session with panel', err);
     }
 
-    // Get the list of configured devices
-    const devices = await getDevices(panelsession)
-
+    // Return what we found of the inventory
     return {
       id,
       name,

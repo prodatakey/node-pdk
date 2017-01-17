@@ -1,7 +1,7 @@
 import got from 'got';
 import url from 'url';
 
-export default function makesession(id_token, baseUrl) {
+export default function makesession(id_token, baseUrl = 'https://accounts.pdk.io/api/') {
   const options = {
     json: true,
     headers: {
@@ -9,7 +9,7 @@ export default function makesession(id_token, baseUrl) {
     }
   };
 
-  return (callurl, callopts = {}) => (
-    got(url.resolve(baseUrl, callurl), { ...options, ...callopts })
+  return async (callurl, callopts = {}) => (
+    (await got(url.resolve(baseUrl, callurl), { ...options, ...callopts })).body
   );
 }

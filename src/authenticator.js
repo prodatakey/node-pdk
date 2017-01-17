@@ -2,8 +2,8 @@ import { Issuer } from 'openid-client';
 import opener from 'opener';
 import { createServer } from 'http';
 
-export default async function authenticate({ client_id, client_secret }) {
-  const pdkIssuer = await Issuer.discover('https://accounts.pdk.io');
+export default async function authenticate(client_id, client_secret, issuer = 'https://accounts.pdk.io') {
+  const pdkIssuer = await Issuer.discover(issuer);
 
   const client = new pdkIssuer.Client({ client_id, client_secret });
 
