@@ -21,14 +21,6 @@ const acompose = (fn, ...rest) =>
   );
   const authsession = makesession(tokenset.id_token);
 
-  const getDevices = async (panelsession) => {
-    try {
-      return await panelsession('devices');
-    } catch (err) {
-      return [];
-    }
-  };
-
   // Connect to the panel and itemize asset info
   // Panel => InventoriedPanel
   const inventoryPanel = _.curry(async (authsession, { id, name, uri }) => {
@@ -42,7 +34,7 @@ const acompose = (fn, ...rest) =>
     let connected = false;
     let devices = [];
     try {
-      devices = await getDevices(panelsession)
+      devices = await panelsession('devices');
       connected = true;
     } catch(err) {
       console.log('Unable to negotiate session with panel', err);
@@ -66,6 +58,7 @@ const acompose = (fn, ...rest) =>
       name,
       owner,
       panels: await p.map(panels, inventoryPanel(authsession)),
+      // Recurse to inventory any children of this OU
       children: await p.map(children, _.compose(inventoryOu(authsession), ou => ou.id)),
     };
   });

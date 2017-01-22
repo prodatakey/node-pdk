@@ -4,10 +4,7 @@ import { createServer } from 'http';
 
 export default async function authenticate(client_id, client_secret, issuer = 'https://accounts.pdk.io') {
   const pdkIssuer = await Issuer.discover(issuer);
-
   const client = new pdkIssuer.Client({ client_id, client_secret });
-
-  const authUrl = client.authorizationUrl({ redirect_uri: 'http://localhost:8433/authCallback', scope: 'openid' });
 
   // Resolve when response is delivered to the local http server
   //TODO: Handle a timeout case when a postback never happens
@@ -41,6 +38,7 @@ export default async function authenticate(client_id, client_secret, issuer = 'h
     // TODO: Use random probed port assignment
     server.listen(8433, '127.0.0.1');
 
+    const authUrl = client.authorizationUrl({ redirect_uri: 'http://localhost:8433/authCallback', scope: 'openid' });
     opener(authUrl);
   });
 }
