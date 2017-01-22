@@ -1,5 +1,5 @@
 import { writeFile } from 'fs';
-import { inspect } from 'util';
+import url from 'url';
 import authenticate from '../authenticator';
 import makesession from '../session';
 import { getOu, getPanelToken } from '../authApi';
@@ -7,12 +7,6 @@ import _ from 'lodash/fp';
 import p from 'asyncp';
 
 process.on('unhandledRejection', r => console.log(r));
-
-const acompose = (fn, ...rest) =>
-  rest.length
-    ? async (...args) =>
-        fn(await acompose(...rest)(...args))
-    : fn;
 
 (async function() {
   let tokenset = await authenticate(
@@ -27,7 +21,7 @@ const acompose = (fn, ...rest) =>
     // Create an authentication session to the panel's API
     const panelsession = makesession(
       await getPanelToken(authsession, id),
-      `${uri}api/`
+      url.resolve(uri, 'api/')
     );
 
     // Get the list of configured devices
@@ -37,10 +31,12 @@ const acompose = (fn, ...rest) =>
       devices = await panelsession('devices');
       connected = true;
     } catch(err) {
-      console.log('Unable to negotiate session with panel', err);
+      //console.log('Unable to negotiate session with panel', err);
     }
 
-    // Return what we found of the inventory
+    console.log(`${id}: online ${connected} devices ${devices.length}`);
+
+    // Return what we found of the panel inventory
     return {
       id,
       name,
@@ -50,25 +46,27 @@ const acompose = (fn, ...rest) =>
     };
   });
 
-  // Processes asset info for every panel in an OU
+  // Recursively processes asset info for every panel in an OU and its children OUs
   // OU => InventoriedOU
   const inventoryOu = _.curry(async (authsession, ouId) => {
     const { name, owner, panels, children } = await getOu(authsession, ouId);
+
+    console.log(`${name}: panels ${panels.length} children ${children.length}`);
+
+    // Return the inventoried OU
     return {
       name,
       owner,
+      // Inventory each panel in the OU
       panels: await p.map(panels, inventoryPanel(authsession)),
       // Recurse to inventory any children of this OU
       children: await p.map(children, _.compose(inventoryOu(authsession), ou => ou.id)),
     };
   });
 
-  /*
-  const myou = await getOu(authsession, 'mine');
-  console.log(myou);
-  */
+  // OU pseudo id 'mine' is the authenticated user's root organization
   const assets = await inventoryOu(authsession, 'mine');
-  console.log(inspect(assets, { depth: null }));
 
+  // Write the inventory out to a file
   writeFile('./inventory.json', JSON.stringify(assets, null, 2) , 'utf-8');
 }())
