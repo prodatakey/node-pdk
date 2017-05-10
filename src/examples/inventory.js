@@ -1,5 +1,6 @@
 import { writeFile } from 'fs';
 import url from 'url';
+import opener from 'opener';
 import authenticate from '../authenticator';
 import makesession from '../session';
 import { getOu, getPanelToken } from '../authApi';
@@ -12,6 +13,7 @@ process.on('unhandledRejection', r => console.log(r));
   let tokenset = await authenticate(
     process.env.PDK_CLIENT_ID,
     process.env.PDK_CLIENT_SECRET,
+    opener,
   );
   const authsession = makesession(tokenset.id_token);
 

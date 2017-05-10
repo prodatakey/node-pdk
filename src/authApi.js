@@ -8,3 +8,7 @@ export async function getPanelToken(session, id) {
     { method: 'POST' }
   )).token;
 }
+
+export async function getPanel(session, id) {
+  return await session(`panels/${id}`);
+}

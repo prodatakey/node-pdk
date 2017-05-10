@@ -1,10 +1,10 @@
 import { Issuer } from 'openid-client';
-import opener from 'opener';
 import { createServer } from 'http';
 
-export default async function authenticate(client_id, client_secret, issuer = 'https://accounts.pdk.io') {
+export async function authenticate(client_id, client_secret, opener, issuer = 'https://accounts.pdk.io') {
   const pdkIssuer = await Issuer.discover(issuer);
   const client = new pdkIssuer.Client({ client_id, client_secret });
+  let callbackUri;
 
   // Resolve when response is delivered to the local http server
   //TODO: Handle a timeout case when a postback never happens
@@ -25,20 +25,37 @@ export default async function authenticate(client_id, client_secret, issuer = 'h
 
       // Reject on error response
       if(params.error) {
-        return reject(params.error_description || params.error);
+        reject(params.error_description || params.error);
+        return;
       }
 
       // Backchannel the code for token exchange
-      return client.authorizationCallback('http://localhost:8433/authCallback', params).then(token => {
-        resolve(token);
-      });
+      client.authorizationCallback(callbackUri, params)
+        .then(resolve)
+        .catch(reject);
     });
+
     // Unref client sockets so keep-alive connections don't stall server close
     server.on('connection', socket => socket.unref());
-    // TODO: Use random probed port assignment
-    server.listen(8433, '127.0.0.1');
+    // Liston on random port
+    server.listen(0, '127.0.0.1', (err) => {
+      if(err) {
+        reject(new Error(`Could not listen for authentication callback: ${err.message}`));
+        return;
+      }
 
-    const authUrl = client.authorizationUrl({ redirect_uri: 'http://localhost:8433/authCallback', scope: 'openid' });
-    opener(authUrl);
+      callbackUri = `http://localhost:${server.address().port}/authCallback`;
+
+      const authUrl = client.authorizationUrl({ redirect_uri: callbackUri, scope: 'openid' });
+      opener(authUrl);
+    });
   });
 }
+
+export async function getOidClient(client_id, client_secret, issuer = 'https://accounts.pdk.io') {
+  const pdkIssuer = await Issuer.discover(issuer);
+  const client = new pdkIssuer.Client({ client_id, client_secret });
+  return client
+}
+
+export default authenticate;

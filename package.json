@@ -2,18 +2,19 @@
   "name": "pdk-client",
   "version": "0.1.0",
   "description": "ProdataKey pdk.io API Client Library for Javascript",
-  "main": "lib/index.js",
+  "main": "lib/",
   "scripts": {
     "bstart": "babel-node",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf ./lib; babel src --out-dir lib"
+    "build": "rm -rf ./lib; babel src --out-dir ."
   },
   "author": "Joshua Perry <josh@pdk.io>",
   "license": "MIT",
   "dependencies": {
     "got": "^6.6.3",
     "opener": "^1.4.2",
-    "openid-client": "^1.3.1"
+    "openid-client": "^1.3.1",
+    "socket.io-client": "^1.7.3"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",

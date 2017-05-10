@@ -7,7 +7,7 @@ import url from 'url';
  * @param {string} id_token The JWT returned from the authentication process.
  * @param {string} baseUrl This base URL used for resolving relative URLs in the endpoint requests.
  */
-export default function makesession(id_token, baseUrl = 'https://accounts.pdk.io/api/') {
+export function makesession(id_token, baseUrl = 'https://accounts.pdk.io/api/') {
   // Curry some options to configure got for interacting with the API
   const options = {
     json: true,
@@ -21,3 +21,5 @@ export default function makesession(id_token, baseUrl = 'https://accounts.pdk.io
     (await got(url.resolve(baseUrl, callurl), { ...options, ...callopts })).body
   );
 }
+
+export default makesession;
