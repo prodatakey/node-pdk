@@ -2,11 +2,10 @@
   "name": "pdk-client",
   "version": "0.1.0",
   "description": "ProdataKey pdk.io API Client Library for Javascript",
-  "main": "lib/",
   "scripts": {
     "bstart": "babel-node",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf ./lib; babel src --out-dir ."
+    "build": "babel src --out-dir ."
   },
   "author": "Joshua Perry <josh@pdk.io>",
   "license": "MIT",

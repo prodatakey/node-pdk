@@ -54,8 +54,36 @@ export async function authenticate(client_id, client_secret, opener, issuer = 'h
 
 export async function getOidClient(client_id, client_secret, issuer = 'https://accounts.pdk.io') {
   const pdkIssuer = await Issuer.discover(issuer);
-  const client = new pdkIssuer.Client({ client_id, client_secret });
-  return client
+  return new pdkIssuer.Client({ client_id, client_secret });
+}
+
+/**
+ * Refresh token set using provided refresh token
+ * @param client_id the oAuth client identifier
+ * @param client_secret the oAuth client secret
+ * @param refresh_token token that will be used for  other tokens renewing
+ * @param issuer url to the openid connect provider, default is: https://accounts.pdk.io
+ * @returns {Promise} token set
+ */
+export async function refreshTokenSet(client_id, client_secret, refresh_token, issuer = 'https://accounts.pdk.io') {
+  const pdkIssuer = await Issuer.discover(issuer);
+  const client = new pdkIssuer.Client({client_id, client_secret});
+
+  return client.refresh(refresh_token);
+}
+
+/**
+ * Revoke provided token
+ * @param client_id the oAuth client identifier
+ * @param client_secret the oAuth client secret
+ * @param token token that will be used for  other tokens renewing
+ * @param issuer url to the openid connect provider, default is: https://accounts.pdk.io
+ */
+export async function revokeToken(client_id, client_secret, token, issuer = 'https://accounts.pdk.io') {
+  const pdkIssuer = await Issuer.discover(issuer);
+  const client = new pdkIssuer.Client({client_id, client_secret});
+
+  return client.revoke(token);
 }
 
 export default authenticate;
