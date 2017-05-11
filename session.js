@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = makesession;
+exports.makesession = makesession;
 
 var _got = require('got');
 
@@ -28,7 +28,7 @@ function makesession(id_token, baseUrl = 'https://accounts.pdk.io/api/') {
   const options = {
     json: true,
     headers: {
-      authorization: `Bearer ${ id_token }`
+      authorization: `Bearer ${id_token}`
     }
   };
 
@@ -43,3 +43,5 @@ function makesession(id_token, baseUrl = 'https://accounts.pdk.io/api/') {
     };
   })();
 }
+
+exports.default = makesession;

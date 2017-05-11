@@ -6,6 +6,10 @@ var _url = require('url');
 
 var _url2 = _interopRequireDefault(_url);
 
+var _opener = require('opener');
+
+var _opener2 = _interopRequireDefault(_opener);
+
 var _authenticator = require('../authenticator');
 
 var _authenticator2 = _interopRequireDefault(_authenticator);
@@ -31,7 +35,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 process.on('unhandledRejection', r => console.log(r));
 
 _asyncToGenerator(function* () {
-  let tokenset = yield (0, _authenticator2.default)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET);
+  let tokenset = yield (0, _authenticator2.default)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, _opener2.default);
   const authsession = (0, _session2.default)(tokenset.id_token);
 
   // Connect to the panel and itemize asset info
@@ -51,7 +55,7 @@ _asyncToGenerator(function* () {
         //console.log('Unable to negotiate session with panel', err);
       }
 
-      console.log(`${ id }: online ${ connected } devices ${ devices.length }`);
+      console.log(`${id}: online ${connected} devices ${devices.length}`);
 
       // Return what we found of the panel inventory
       return {
@@ -74,7 +78,7 @@ _asyncToGenerator(function* () {
     var _ref3 = _asyncToGenerator(function* (authsession, ouId) {
       const { name, owner, panels, children } = yield (0, _authApi.getOu)(authsession, ouId);
 
-      console.log(`${ name }: panels ${ panels.length } children ${ children.length }`);
+      console.log(`${name}: panels ${panels.length} children ${children.length}`);
 
       // Return the inventoried OU
       return {
