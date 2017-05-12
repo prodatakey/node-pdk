@@ -44,4 +44,4 @@ function makesession(id_token, baseUrl = 'https://accounts.pdk.io/api/') {
   })();
 }
 
-exports.default = makesession;
+exports.default = { makesession };
