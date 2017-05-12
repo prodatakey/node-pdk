@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.makesession = undefined;
+exports.makePanelSession = exports.makesession = undefined;
 
 let makesession = exports.makesession = (() => {
   var _ref = _asyncToGenerator(function* (authsession, { id, uri }) {
@@ -26,6 +26,54 @@ let makesession = exports.makesession = (() => {
   };
 })();
 
+let makePanelSession = exports.makePanelSession = (() => {
+  var _ref2 = _asyncToGenerator(function* (client_id, client_secret, panel_id, issuer = 'https://accounts.pdk.io') {
+    let tokenset = yield (0, _authenticator.authenticate)(client_id, client_secret, _opener2.default, issuer);
+    if (!tokenset || !tokenset.id_token) {
+      throw new Error('Cannot get id_token from OpenID Connect provider');
+    }
+
+    let authsession = (0, _session.makesession)(tokenset.id_token);
+
+    let panel = yield (0, _authApi.getPanel)(authsession, panel_id);
+
+    const options = { id: panel.id, uri: panel.uri };
+    let panelSession = yield makesession(authsession, options);
+
+    return (() => {
+      var _ref3 = _asyncToGenerator(function* (callurl, callopts = {}) {
+        try {
+          return yield panelSession(callurl, callopts);
+        } catch (err) {
+          if (err && err.statusCode === 401) {
+            console.log('Panel token is expired, refresh all tokens');
+            try {
+              if (!tokenset.refresh_token) {
+                //if client does not support refresh tokens (implicit authentication flow) we will get token set from /auth
+                throw new Error();
+              }
+              tokenset = yield (0, _authenticator.refreshTokenSet)(client_id, client_secret, tokenset.refresh_token, issuer);
+            } catch (err) {
+              tokenset = yield (0, _authenticator.authenticate)(client_id, client_secret, _opener2.default, issuer);
+            }
+            authsession = (0, _session.makesession)(tokenset.id_token);
+            panelSession = yield makesession(authsession, options);
+            return yield panelSession(callurl, callopts);
+          }
+        }
+      });
+
+      return function (_x6) {
+        return _ref3.apply(this, arguments);
+      };
+    })();
+  });
+
+  return function makePanelSession(_x3, _x4, _x5) {
+    return _ref2.apply(this, arguments);
+  };
+})();
+
 var _url = require('url');
 
 var _url2 = _interopRequireDefault(_url);
@@ -34,9 +82,19 @@ var _socket = require('socket.io-client');
 
 var _socket2 = _interopRequireDefault(_socket);
 
+var _opener = require('opener');
+
+var _opener2 = _interopRequireDefault(_opener);
+
+var _util = require('util');
+
+var _util2 = _interopRequireDefault(_util);
+
 var _authApi = require('./authApi');
 
 var _session = require('./session');
+
+var _authenticator = require('./authenticator');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
