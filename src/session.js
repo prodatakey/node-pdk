@@ -22,4 +22,4 @@ export function makesession(id_token, baseUrl = 'https://accounts.pdk.io/api/') 
   );
 }
 
-export default makesession;
+export default { makesession };

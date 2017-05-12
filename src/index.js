@@ -1,7 +1,7 @@
 import * as authenticator from './authenticator';
-import * as session from './session';
+import makesession from './session';
 
 export default {
   authenticator,
-  session
+  makesession
 }
