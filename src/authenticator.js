@@ -2,6 +2,7 @@ import { Issuer } from 'openid-client';
 import { createServer } from 'http';
 
 export async function authenticate(client_id, client_secret, opener, issuer = 'https://accounts.pdk.io') {
+  Issuer.defaultHttpOptions = {form: true};
   const pdkIssuer = await Issuer.discover(issuer);
   const client = new pdkIssuer.Client({ client_id, client_secret });
   let callbackUri;
@@ -37,8 +38,7 @@ export async function authenticate(client_id, client_secret, opener, issuer = 'h
 
     // Unref client sockets so keep-alive connections don't stall server close
     server.on('connection', socket => socket.unref());
-    // Liston on random port
-    server.listen(0, '127.0.0.1', (err) => {
+    server.listen(8433, '127.0.0.1', (err) => {
       if(err) {
         reject(new Error(`Could not listen for authentication callback: ${err.message}`));
         return;

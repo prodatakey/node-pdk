@@ -7,6 +7,7 @@ exports.revokeToken = exports.refreshTokenSet = exports.getOidClient = exports.a
 
 let authenticate = exports.authenticate = (() => {
   var _ref = _asyncToGenerator(function* (client_id, client_secret, opener, issuer = 'https://accounts.pdk.io') {
+    _openidClient.Issuer.defaultHttpOptions = { form: true };
     const pdkIssuer = yield _openidClient.Issuer.discover(issuer);
     const client = new pdkIssuer.Client({ client_id, client_secret });
     let callbackUri;
@@ -41,8 +42,7 @@ let authenticate = exports.authenticate = (() => {
       server.on('connection', function (socket) {
         return socket.unref();
       });
-      // Liston on random port
-      server.listen(0, '127.0.0.1', function (err) {
+      server.listen(8433, '127.0.0.1', function (err) {
         if (err) {
           reject(new Error(`Could not listen for authentication callback: ${err.message}`));
           return;

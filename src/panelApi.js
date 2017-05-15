@@ -1,7 +1,6 @@
 import url from 'url';
 import io from 'socket.io-client';
 import opener from 'opener';
-import util from 'util';
 import {getPanelToken, getPanel} from './authApi';
 import {makesession as makeauthsession} from './session';
 import {authenticate, refreshTokenSet} from './authenticator';
@@ -56,6 +55,7 @@ export async function makePanelSession(client_id, client_secret, panel_id, issue
         panelSession = await makesession(authsession, options);
         return (await panelSession(callurl, callopts));
       }
+      throw err;
     }
   };
 }

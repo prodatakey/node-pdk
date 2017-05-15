@@ -60,6 +60,7 @@ let makePanelSession = exports.makePanelSession = (() => {
             panelSession = yield makesession(authsession, options);
             return yield panelSession(callurl, callopts);
           }
+          throw err;
         }
       });
 
@@ -85,10 +86,6 @@ var _socket2 = _interopRequireDefault(_socket);
 var _opener = require('opener');
 
 var _opener2 = _interopRequireDefault(_opener);
-
-var _util = require('util');
-
-var _util2 = _interopRequireDefault(_util);
 
 var _authApi = require('./authApi');
 

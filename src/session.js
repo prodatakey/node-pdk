@@ -12,14 +12,14 @@ export function makesession(id_token, baseUrl = 'https://accounts.pdk.io/api/') 
   const options = {
     json: true,
     headers: {
-      authorization: `Bearer ${id_token}`,
+      authorization: `Bearer ${id_token}`
     }
   };
 
   // Return an async function that makes a request to an API url and returns the body of the response
-  return async (callurl, callopts = {}) => (
-    (await got(url.resolve(baseUrl, callurl), { ...options, ...callopts })).body
+  return async(callurl, callopts = {}) => (
+    (await got(url.resolve(baseUrl, callurl), {...options, ...callopts})).body
   );
 }
 
-export default { makesession };
+export default {makesession};
