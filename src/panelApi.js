@@ -38,7 +38,7 @@ export default async function (client_id, client_secret, panel_id, issuer = 'htt
     throw new Error('Cannot get id_token from OpenID Connect provider');
   }
 
-  let authsession = makeauthsession(tokenset.id_token);
+  let authsession = makeauthsession(tokenset.id_token, url.resolve(issuer, 'api/'));
 
   let panel = await getPanel(authsession, panel_id);
 
@@ -60,7 +60,7 @@ export default async function (client_id, client_secret, panel_id, issuer = 'htt
         } catch (err) {
           tokenset = await authenticate(client_id, client_secret, opener, issuer);
         }
-        authsession = makeauthsession(tokenset.id_token);
+        authsession = makeauthsession(tokenset.id_token, url.resolve(uri, 'api/'));
         panelSession = await makesession(authsession, options);
         return (await panelSession(callurl, callopts));
       }

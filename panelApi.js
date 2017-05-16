@@ -65,7 +65,7 @@ exports.default = (() => {
       throw new Error('Cannot get id_token from OpenID Connect provider');
     }
 
-    let authsession = (0, _session.makesession)(tokenset.id_token);
+    let authsession = (0, _session.makesession)(tokenset.id_token, _url2.default.resolve(issuer, 'api/'));
 
     let panel = yield (0, _authApi.getPanel)(authsession, panel_id);
 
@@ -88,7 +88,7 @@ exports.default = (() => {
             } catch (err) {
               tokenset = yield (0, _authenticator.authenticate)(client_id, client_secret, _opener2.default, issuer);
             }
-            authsession = (0, _session.makesession)(tokenset.id_token);
+            authsession = (0, _session.makesession)(tokenset.id_token, _url2.default.resolve(uri, 'api/'));
             panelSession = yield makesession(authsession, options);
             return yield panelSession(callurl, callopts);
           }
