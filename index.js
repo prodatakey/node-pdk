@@ -10,8 +10,6 @@ var authenticator = _interopRequireWildcard(_authenticator);
 
 var _session = require('./session');
 
-var _session2 = _interopRequireDefault(_session);
-
 var _panelApi = require('./panelApi');
 
 var _panelApi2 = _interopRequireDefault(_panelApi);
@@ -22,6 +20,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 exports.default = {
   authenticator,
-  makesession: _session2.default,
+  makeSession: _session.makesession,
   makePanelSession: _panelApi2.default
 };
