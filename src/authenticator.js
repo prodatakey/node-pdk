@@ -2,6 +2,7 @@ import { Issuer } from 'openid-client';
 import { createServer } from 'http';
 
 export async function authenticate(client_id, client_secret, opener, issuer = 'https://accounts.pdk.io') {
+  //FIXME: Remove this default http options setter after 'got' library will release new version
   Issuer.defaultHttpOptions = {form: true};
   const pdkIssuer = await Issuer.discover(issuer);
   const client = new pdkIssuer.Client({ client_id, client_secret });

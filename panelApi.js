@@ -3,9 +3,8 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.makePanelSession = exports.makesession = undefined;
 
-let makesession = exports.makesession = (() => {
+let makesession = (() => {
   var _ref = _asyncToGenerator(function* (authsession, { id, uri }) {
     const token = yield (0, _authApi.getPanelToken)(authsession, id);
     const session = (0, _session.makesession)(token, _url2.default.resolve(uri, 'api/'));
@@ -26,7 +25,40 @@ let makesession = exports.makesession = (() => {
   };
 })();
 
-let makePanelSession = exports.makePanelSession = (() => {
+/**
+ * Provides access to the panel api by the panel id, including refresh id tokens functionality
+ * @param client_id client application identifier
+ * @param client_secret client application secret
+ * @param panel_id identifier of the panel
+ * @param issuer openID connect provider url
+ * @returns {function(*=, *=)} panel session, function with two parameters: relative path to the resource
+ * (e.g. 'persons' or 'groups/{id}') and options object that can include for example 'method', 'body' or 'query' properties
+ */
+
+
+var _url = require('url');
+
+var _url2 = _interopRequireDefault(_url);
+
+var _socket = require('socket.io-client');
+
+var _socket2 = _interopRequireDefault(_socket);
+
+var _opener = require('opener');
+
+var _opener2 = _interopRequireDefault(_opener);
+
+var _authApi = require('./authApi');
+
+var _session = require('./session');
+
+var _authenticator = require('./authenticator');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+exports.default = (() => {
   var _ref2 = _asyncToGenerator(function* (client_id, client_secret, panel_id, issuer = 'https://accounts.pdk.io') {
     let tokenset = yield (0, _authenticator.authenticate)(client_id, client_secret, _opener2.default, issuer);
     if (!tokenset || !tokenset.id_token) {
@@ -70,29 +102,7 @@ let makePanelSession = exports.makePanelSession = (() => {
     })();
   });
 
-  return function makePanelSession(_x3, _x4, _x5) {
+  return function (_x3, _x4, _x5) {
     return _ref2.apply(this, arguments);
   };
 })();
-
-var _url = require('url');
-
-var _url2 = _interopRequireDefault(_url);
-
-var _socket = require('socket.io-client');
-
-var _socket2 = _interopRequireDefault(_socket);
-
-var _opener = require('opener');
-
-var _opener2 = _interopRequireDefault(_opener);
-
-var _authApi = require('./authApi');
-
-var _session = require('./session');
-
-var _authenticator = require('./authenticator');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }

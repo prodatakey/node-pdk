@@ -5,7 +5,7 @@ import {getPanelToken, getPanel} from './authApi';
 import {makesession as makeauthsession} from './session';
 import {authenticate, refreshTokenSet} from './authenticator';
 
-export async function makesession(authsession, {id, uri}) {
+async function makesession(authsession, {id, uri}) {
   const token = await getPanelToken(authsession, id);
   const session = makeauthsession(
     token,
@@ -23,7 +23,16 @@ export async function makesession(authsession, {id, uri}) {
   return session;
 }
 
-export async function makePanelSession(client_id, client_secret, panel_id, issuer = 'https://accounts.pdk.io') {
+/**
+ * Provides access to the panel api by the panel id, including refresh id tokens functionality
+ * @param client_id client application identifier
+ * @param client_secret client application secret
+ * @param panel_id identifier of the panel
+ * @param issuer openID connect provider url
+ * @returns {function(*=, *=)} panel session, function with two parameters: relative path to the resource
+ * (e.g. 'persons' or 'groups/{id}') and options object that can include for example 'method', 'body' or 'query' properties
+ */
+export default async function (client_id, client_secret, panel_id, issuer = 'https://accounts.pdk.io') {
   let tokenset = await authenticate(client_id, client_secret, opener, issuer);
   if (!tokenset || !tokenset.id_token) {
     throw new Error('Cannot get id_token from OpenID Connect provider');

@@ -7,6 +7,7 @@ exports.revokeToken = exports.refreshTokenSet = exports.getOidClient = exports.a
 
 let authenticate = exports.authenticate = (() => {
   var _ref = _asyncToGenerator(function* (client_id, client_secret, opener, issuer = 'https://accounts.pdk.io') {
+    //FIXME: Remove this default http options setter after 'got' library will release new version
     _openidClient.Issuer.defaultHttpOptions = { form: true };
     const pdkIssuer = yield _openidClient.Issuer.discover(issuer);
     const client = new pdkIssuer.Client({ client_id, client_secret });
