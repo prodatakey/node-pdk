@@ -6,7 +6,9 @@ Object.defineProperty(exports, "__esModule", {
 exports.makeAuthSession = exports.makePanelSession = undefined;
 
 /**
- * Provides access to the panel api by the panel id, including refresh id tokens functionality
+ * Provides access to the panel api by the panel id, including refresh id tokens functionality.
+ * After id_token has expired, new token will be requested from identity provider using auth session.
+ * This function does not include auth session refresh, it should be processed outside.
  * @param authSession session to the identity provider
  * @param panel_id identifier of the panel
  * @returns {function(*=, *=)} panel session, function with two parameters: relative path to the resource
@@ -45,7 +47,8 @@ let makePanelSession = exports.makePanelSession = (() => {
 })();
 
 /**
- * Provides access to the identity provider api, including refresh auth tokens functionality
+ * Provides access to the identity provider api, including refresh auth tokens functionality.
+ * After id_token has expired, it will be refreshed using refresh_token
  * @param client_id client application identifier
  * @param client_secret client application secret
  * @param issuer openID connect provider url
