@@ -1,9 +1,7 @@
-import * as authenticator from './authenticator';
-import {makesession as makeSession} from './session';
-import makePanelSession from './panelApi';
+import authenticator from './authenticator';
+import session from './session';
 
 export default {
   authenticator,
-  makeSession,
-  makePanelSession
+  session
 }

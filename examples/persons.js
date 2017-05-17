@@ -1,6 +1,6 @@
 'use strict';
 
-var _panelApi = require('../panelApi');
+var _session = require('../session');
 
 var _util = require('util');
 
@@ -14,14 +14,17 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 process.on('unhandledRejection', r => console.log(r));
 _asyncToGenerator(function* () {
-  let panelSession = yield (0, _panelApi.makePanelSession)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, '10702QI', 'http://localhost:9090');
+  let authSession = yield (0, _session.makeAuthSession)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, 'http://localhost:9090');
+
+  let panelSession = yield (0, _session.makePanelSession)(authSession, process.env.PDK_PANEL_ID);
 
   let people = yield panelSession('persons');
+  console.log(_util2.default.inspect(people));
 
   try {
     let createPerson = yield panelSession('persons', {
       body: {
-        firstName: 'ewwsdewe',
+        firstName: 'Foo',
         lastName: 'Bar'
       }
     });

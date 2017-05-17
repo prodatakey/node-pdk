@@ -1,27 +1,27 @@
-import {writeFile} from 'fs';
+import { writeFile } from 'fs';
 import url from 'url';
 import opener from 'opener';
 import {authenticate, refreshTokenSet} from '../authenticator';
-import {makesession} from '../session';
+import {makeSession} from '../session';
 import {getOu, getPanelToken} from '../authApi';
 import _ from 'lodash/fp';
 import p from 'asyncp';
 
 process.on('unhandledRejection', r => console.log(r));
 
-(async function () {
+(async function() {
   let tokenset = await authenticate(
     process.env.PDK_CLIENT_ID,
     process.env.PDK_CLIENT_SECRET,
     opener,
   );
-  let authsession = makesession(tokenset.id_token);
+  let authsession = makeSession(tokenset.id_token);
 
   // Connect to the panel and itemize asset info
   // Panel => InventoriedPanel
-  const inventoryPanel = _.curry(async(authsession, {id, name, uri}) => {
+  const inventoryPanel = _.curry(async (authsession, { id, name, uri }) => {
     // Create an authentication session to the panel's API
-    const panelsession = makesession(
+    const panelsession = makeSession(
       await getPanelToken(authsession, id),
       url.resolve(uri, 'api/')
     );
@@ -32,7 +32,7 @@ process.on('unhandledRejection', r => console.log(r));
     try {
       devices = await panelsession('devices');
       connected = true;
-    } catch (err) {
+    } catch(err) {
       //console.log('Unable to negotiate session with panel', err);
     }
 
@@ -58,7 +58,7 @@ process.on('unhandledRejection', r => console.log(r));
       if (err.statusCode === 401) {
         tokenset = await refreshTokenSet(process.env.PDK_CLIENT_ID,
           process.env.PDK_CLIENT_SECRET, tokenset.refresh_token);
-        authsession = makesession(tokenset.id_token);
+        authsession = makeSession(tokenset.id_token);
         ou = await getOu(authsession, ouId);
       }
     }

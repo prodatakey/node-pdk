@@ -39,6 +39,8 @@ export async function authenticate(client_id, client_secret, opener, issuer = 'h
 
     // Unref client sockets so keep-alive connections don't stall server close
     server.on('connection', socket => socket.unref());
+    //We can't use random server port because oidc-provider requires given redirect_uri value to be present
+    // in the database ('http://localhost/authCallback' and 'http://localhost:8433/authCallback' are not the same uris)
     server.listen(8433, '127.0.0.1', (err) => {
       if(err) {
         reject(new Error(`Could not listen for authentication callback: ${err.message}`));
@@ -87,4 +89,9 @@ export async function revokeToken(client_id, client_secret, token, issuer = 'htt
   return client.revoke(token);
 }
 
-export default authenticate;
+export default {
+  authenticate,
+  getOidClient,
+  refreshTokenSet,
+  revokeToken
+};

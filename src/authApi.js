@@ -5,10 +5,16 @@ export async function getOu(session, id = 'mine') {
 export async function getPanelToken(session, id) {
   return (await session(
     `panels/${id}/token`,
-    { method: 'POST' }
+    {method: 'POST'}
   )).token;
 }
 
 export async function getPanel(session, id) {
   return await session(`panels/${id}`);
+}
+
+export default {
+  getOu,
+  getPanelToken,
+  getPanel
 }

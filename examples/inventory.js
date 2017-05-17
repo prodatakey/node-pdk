@@ -32,14 +32,14 @@ process.on('unhandledRejection', r => console.log(r));
 
 _asyncToGenerator(function* () {
   let tokenset = yield (0, _authenticator.authenticate)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, _opener2.default);
-  let authsession = (0, _session.makesession)(tokenset.id_token);
+  let authsession = (0, _session.makeSession)(tokenset.id_token);
 
   // Connect to the panel and itemize asset info
   // Panel => InventoriedPanel
   const inventoryPanel = _fp2.default.curry((() => {
     var _ref2 = _asyncToGenerator(function* (authsession, { id, name, uri }) {
       // Create an authentication session to the panel's API
-      const panelsession = (0, _session.makesession)((yield (0, _authApi.getPanelToken)(authsession, id)), _url2.default.resolve(uri, 'api/'));
+      const panelsession = (0, _session.makeSession)((yield (0, _authApi.getPanelToken)(authsession, id)), _url2.default.resolve(uri, 'api/'));
 
       // Get the list of configured devices
       let connected = false;
@@ -78,7 +78,7 @@ _asyncToGenerator(function* () {
       } catch (err) {
         if (err.statusCode === 401) {
           tokenset = yield (0, _authenticator.refreshTokenSet)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, tokenset.refresh_token);
-          authsession = (0, _session.makesession)(tokenset.id_token);
+          authsession = (0, _session.makeSession)(tokenset.id_token);
           ou = yield (0, _authApi.getOu)(authsession, ouId);
         }
       }

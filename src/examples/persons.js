@@ -2,21 +2,24 @@
  * Created by dmitry.redkovolosov on 12.05.2017.
  */
 
-import {makePanelSession} from '../panelApi';
+import {makePanelSession, makeAuthSession} from '../session';
 import util from 'util';
 
 
 process.on('unhandledRejection', r => console.log(r));
 (async function () {
-  let panelSession = await makePanelSession(process.env.PDK_CLIENT_ID,
-    process.env.PDK_CLIENT_SECRET, '10702QI', 'http://localhost:9090');
+  let authSession = await makeAuthSession(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET,
+    'http://localhost:9090');
+
+  let panelSession = await makePanelSession(authSession, process.env.PDK_PANEL_ID);
 
   let people = await panelSession('persons');
+  console.log(util.inspect(people));
 
   try {
     let createPerson = await panelSession('persons', {
       body: {
-        firstName: 'ewwsdewe',
+        firstName: 'Foo',
         lastName: 'Bar'
       }
     });

@@ -43,6 +43,8 @@ let authenticate = exports.authenticate = (() => {
       server.on('connection', function (socket) {
         return socket.unref();
       });
+      //We can't use random server port because oidc-provider requires given redirect_uri value to be present
+      // in the database ('http://localhost/authCallback' and 'http://localhost:8433/authCallback' are not the same uris)
       server.listen(8433, '127.0.0.1', function (err) {
         if (err) {
           reject(new Error(`Could not listen for authentication callback: ${err.message}`));
@@ -124,4 +126,9 @@ var _http = require('http');
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-exports.default = authenticate;
+exports.default = {
+  authenticate,
+  getOidClient,
+  refreshTokenSet,
+  revokeToken
+};
