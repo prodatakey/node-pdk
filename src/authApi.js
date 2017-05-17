@@ -5,7 +5,7 @@ export async function getOu(session, id = 'mine') {
 export async function getPanelToken(session, id) {
   return (await session(
     `panels/${id}/token`,
-    {method: 'POST'}
+    { method: 'POST' }
   )).token;
 }
 

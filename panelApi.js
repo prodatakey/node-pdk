@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -26,17 +26,17 @@ let makeSession = exports.makeSession = (() => {
   };
 })();
 
-var _url = require("url");
+var _url = require('url');
 
 var _url2 = _interopRequireDefault(_url);
 
-var _socket = require("socket.io-client");
+var _socket = require('socket.io-client');
 
 var _socket2 = _interopRequireDefault(_socket);
 
-var _authApi = require("./authApi");
+var _authApi = require('./authApi');
 
-var _session = require("./session");
+var _session = require('./session');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 

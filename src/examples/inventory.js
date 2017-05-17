@@ -3,7 +3,7 @@ import url from 'url';
 import opener from 'opener';
 import {authenticate, refreshTokenSet} from '../authenticator';
 import {makeSession} from '../session';
-import {getOu, getPanelToken} from '../authApi';
+import { getOu, getPanelToken } from '../authApi';
 import _ from 'lodash/fp';
 import p from 'asyncp';
 
