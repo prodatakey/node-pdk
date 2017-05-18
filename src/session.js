@@ -88,7 +88,7 @@ export async function makeAuthSession(client_id, client_secret, issuer = 'https:
         } catch (err) {
           tokenSet = await authenticator.authenticate(client_id, client_secret, opener, issuer);
         }
-        authSession = makeSession(tokenSet.id_token, url.resolve(uri, 'api/'));
+        authSession = makeSession(tokenSet.id_token, url.resolve(issuer, 'api/'));
         return (await authSession(callurl, callopts));
       }
       throw err;

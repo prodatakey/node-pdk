@@ -81,7 +81,7 @@ let makeAuthSession = exports.makeAuthSession = (() => {
             } catch (err) {
               tokenSet = yield _authenticator2.default.authenticate(client_id, client_secret, _opener2.default, issuer);
             }
-            authSession = makeSession(tokenSet.id_token, _url2.default.resolve(uri, 'api/'));
+            authSession = makeSession(tokenSet.id_token, _url2.default.resolve(issuer, 'api/'));
             return yield authSession(callurl, callopts);
           }
           throw err;
