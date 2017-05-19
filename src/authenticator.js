@@ -2,6 +2,8 @@ import { Issuer } from 'openid-client';
 import { createServer } from 'http';
 
 export async function authenticate(client_id, client_secret, opener, issuer = 'https://accounts.pdk.io') {
+  //FIXME: Remove this default http options setter after 'got' library will release new version
+  Issuer.defaultHttpOptions = {form: true};
   const pdkIssuer = await Issuer.discover(issuer);
   const client = new pdkIssuer.Client({ client_id, client_secret });
   let callbackUri;
@@ -37,7 +39,7 @@ export async function authenticate(client_id, client_secret, opener, issuer = 'h
 
     // Unref client sockets so keep-alive connections don't stall server close
     server.on('connection', socket => socket.unref());
-    // Liston on random port
+    //Listen on random port
     server.listen(0, '127.0.0.1', (err) => {
       if(err) {
         reject(new Error(`Could not listen for authentication callback: ${err.message}`));
@@ -54,8 +56,41 @@ export async function authenticate(client_id, client_secret, opener, issuer = 'h
 
 export async function getOidClient(client_id, client_secret, issuer = 'https://accounts.pdk.io') {
   const pdkIssuer = await Issuer.discover(issuer);
-  const client = new pdkIssuer.Client({ client_id, client_secret });
-  return client
+  return new pdkIssuer.Client({ client_id, client_secret });
 }
 
-export default authenticate;
+/**
+ * Refresh token set using provided refresh token
+ * @param client_id the oAuth client identifier
+ * @param client_secret the oAuth client secret
+ * @param refresh_token token that will be used for  other tokens renewing
+ * @param issuer url to the openid connect provider, default is: https://accounts.pdk.io
+ * @returns {Promise} token set
+ */
+export async function refreshTokenSet(client_id, client_secret, refresh_token, issuer = 'https://accounts.pdk.io') {
+  const pdkIssuer = await Issuer.discover(issuer);
+  const client = new pdkIssuer.Client({client_id, client_secret});
+
+  return client.refresh(refresh_token);
+}
+
+/**
+ * Revoke provided token
+ * @param client_id the oAuth client identifier
+ * @param client_secret the oAuth client secret
+ * @param token token that will be used for  other tokens renewing
+ * @param issuer url to the openid connect provider, default is: https://accounts.pdk.io
+ */
+export async function revokeToken(client_id, client_secret, token, issuer = 'https://accounts.pdk.io') {
+  const pdkIssuer = await Issuer.discover(issuer);
+  const client = new pdkIssuer.Client({client_id, client_secret});
+
+  return client.revoke(token);
+}
+
+export default {
+  authenticate,
+  getOidClient,
+  refreshTokenSet,
+  revokeToken
+};

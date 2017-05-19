@@ -2,17 +2,16 @@
   "name": "pdk-client",
   "version": "0.1.0",
   "description": "ProdataKey pdk.io API Client Library for Javascript",
-  "main": "lib/",
   "scripts": {
     "bstart": "babel-node",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf ./lib; babel src --out-dir ."
+    "build": "babel src --out-dir ."
   },
   "author": "Joshua Perry <josh@pdk.io>",
   "license": "MIT",
   "dependencies": {
     "asyncp": "^0.8.0",
-    "got": "^6.6.3",
+    "got": "git://git@github.com:sindresorhus/got.git#c86706bd23277ba033abefaf92a9c8fa69f78eee",
     "opener": "^1.4.2",
     "openid-client": "^1.3.1",
     "socket.io-client": "^1.7.3"
