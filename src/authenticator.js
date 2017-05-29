@@ -1,7 +1,7 @@
 import { Issuer } from 'openid-client';
 import { createServer } from 'http';
 
-export async function authenticate(client_id, client_secret, opener, issuer = 'https://accounts.pdk.io') {
+export async function authenticate(client_id, client_secret, opener, scope, issuer = 'https://accounts.pdk.io') {
   //FIXME: Remove this default http options setter after 'got' library will release new version
   Issuer.defaultHttpOptions = {form: true};
   const pdkIssuer = await Issuer.discover(issuer);
@@ -48,7 +48,19 @@ export async function authenticate(client_id, client_secret, opener, issuer = 'h
 
       callbackUri = `http://localhost:${server.address().port}/authCallback`;
 
-      const authUrl = client.authorizationUrl({ redirect_uri: callbackUri, scope: 'openid' });
+      scope = scope ? scope.split(' ') : null;
+      if (!scope || scope.indexOf('openid') === -1) {
+        throw new Error('"Scope" parameter must contain "openid" value');
+      }
+      let authorizationUrlParams = {
+        redirect_uri: callbackUri,
+        scope: scope.join(' ')
+      };
+      if (scope.indexOf('offline_access') !== -1) {
+        authorizationUrlParams.prompt = 'consent';
+      }
+
+      const authUrl = client.authorizationUrl(authorizationUrlParams);
       opener(authUrl);
     });
   });

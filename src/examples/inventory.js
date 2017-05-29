@@ -14,6 +14,7 @@ process.on('unhandledRejection', r => console.log(r));
     process.env.PDK_CLIENT_ID,
     process.env.PDK_CLIENT_SECRET,
     opener,
+    'openid'
   );
   let authsession = makeSession(tokenset.id_token);
 

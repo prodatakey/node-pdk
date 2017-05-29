@@ -59,7 +59,8 @@ let makePanelSession = exports.makePanelSession = (() => {
 
 let makeAuthSession = exports.makeAuthSession = (() => {
   var _ref4 = _asyncToGenerator(function* (client_id, client_secret, issuer = 'https://accounts.pdk.io') {
-    let tokenSet = yield _authenticator2.default.authenticate(client_id, client_secret, _opener2.default, issuer);
+    //create auth session with refresh tokens
+    let tokenSet = yield _authenticator2.default.authenticate(client_id, client_secret, _opener2.default, 'openid offline_access', issuer);
     if (!tokenSet || !tokenSet.id_token) {
       throw new Error('Cannot get id_token from OpenID Connect provider');
     }

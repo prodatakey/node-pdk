@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.revokeToken = exports.refreshTokenSet = exports.getOidClient = exports.authenticate = undefined;
 
 let authenticate = exports.authenticate = (() => {
-  var _ref = _asyncToGenerator(function* (client_id, client_secret, opener, issuer = 'https://accounts.pdk.io') {
+  var _ref = _asyncToGenerator(function* (client_id, client_secret, opener, scope, issuer = 'https://accounts.pdk.io') {
     //FIXME: Remove this default http options setter after 'got' library will release new version
     _openidClient.Issuer.defaultHttpOptions = { form: true };
     const pdkIssuer = yield _openidClient.Issuer.discover(issuer);
@@ -52,13 +52,25 @@ let authenticate = exports.authenticate = (() => {
 
         callbackUri = `http://localhost:${server.address().port}/authCallback`;
 
-        const authUrl = client.authorizationUrl({ redirect_uri: callbackUri, scope: 'openid' });
+        scope = scope ? scope.split(' ') : null;
+        if (!scope || scope.indexOf('openid') === -1) {
+          throw new Error('"Scope" parameter must contain "openid" value');
+        }
+        let authorizationUrlParams = {
+          redirect_uri: callbackUri,
+          scope: scope.join(' ')
+        };
+        if (scope.indexOf('offline_access') !== -1) {
+          authorizationUrlParams.prompt = 'consent';
+        }
+
+        const authUrl = client.authorizationUrl(authorizationUrlParams);
         opener(authUrl);
       });
     });
   });
 
-  return function authenticate(_x, _x2, _x3) {
+  return function authenticate(_x, _x2, _x3, _x4) {
     return _ref.apply(this, arguments);
   };
 })();
@@ -69,7 +81,7 @@ let getOidClient = exports.getOidClient = (() => {
     return new pdkIssuer.Client({ client_id, client_secret });
   });
 
-  return function getOidClient(_x4, _x5) {
+  return function getOidClient(_x5, _x6) {
     return _ref2.apply(this, arguments);
   };
 })();
@@ -92,7 +104,7 @@ let refreshTokenSet = exports.refreshTokenSet = (() => {
     return client.refresh(refresh_token);
   });
 
-  return function refreshTokenSet(_x6, _x7, _x8) {
+  return function refreshTokenSet(_x7, _x8, _x9) {
     return _ref3.apply(this, arguments);
   };
 })();
@@ -114,7 +126,7 @@ let revokeToken = exports.revokeToken = (() => {
     return client.revoke(token);
   });
 
-  return function revokeToken(_x9, _x10, _x11) {
+  return function revokeToken(_x10, _x11, _x12) {
     return _ref4.apply(this, arguments);
   };
 })();

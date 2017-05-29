@@ -67,7 +67,8 @@ export async function makePanelSession(authSession, panel_id) {
  * (e.g. 'ous' or 'panels/{id}') and options object that can include for example 'method', 'body' or 'query' properties
  */
 export async function makeAuthSession(client_id, client_secret, issuer = 'https://accounts.pdk.io') {
-  let tokenSet = await authenticator.authenticate(client_id, client_secret, opener, issuer);
+  //create auth session with refresh tokens
+  let tokenSet = await authenticator.authenticate(client_id, client_secret, opener, 'openid offline_access', issuer);
   if (!tokenSet || !tokenSet.id_token) {
     throw new Error('Cannot get id_token from OpenID Connect provider');
   }
