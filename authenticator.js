@@ -7,10 +7,11 @@ exports.revokeToken = exports.refreshTokenSet = exports.getOidClient = exports.a
 
 let authenticate = exports.authenticate = (() => {
   var _ref = _asyncToGenerator(function* (client_id, client_secret, opener, scope, issuer = 'https://accounts.pdk.io') {
-    //FIXME: Remove this default http options setter after 'got' library will release new version
-    _openidClient.Issuer.defaultHttpOptions = { form: true };
     const pdkIssuer = yield _openidClient.Issuer.discover(issuer);
     const client = new pdkIssuer.Client({ client_id, client_secret });
+    if (!opener) {
+      opener = _opener2.default;
+    }
     let callbackUri;
 
     // Resolve when response is delivered to the local http server
@@ -135,7 +136,16 @@ var _openidClient = require('openid-client');
 
 var _http = require('http');
 
+var _opener = require('opener');
+
+var _opener2 = _interopRequireDefault(_opener);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+//FIXME: Remove this default http options setter after 'got' library will release new version
+_openidClient.Issuer.defaultHttpOptions = { form: true };
 
 exports.default = {
   authenticate,
