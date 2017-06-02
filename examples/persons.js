@@ -14,7 +14,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 process.on('unhandledRejection', r => console.log(r));
 _asyncToGenerator(function* () {
-  let authSession = yield (0, _session.makeAuthSession)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, 'http://localhost:9090');
+  let authSession = yield (0, _session.makeAuthSession)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, null, 'https://testaccounts.pdk.io');
 
   let panelSession = yield (0, _session.makePanelSession)(authSession, process.env.PDK_PANEL_ID);
 

@@ -1,11 +1,16 @@
 import { Issuer } from 'openid-client';
 import { createServer } from 'http';
+import defaultOpener from 'opener';
+
+//FIXME: Remove this default http options setter after 'got' library will release new version
+Issuer.defaultHttpOptions = {form: true};
 
 export async function authenticate(client_id, client_secret, opener, scope, issuer = 'https://accounts.pdk.io') {
-  //FIXME: Remove this default http options setter after 'got' library will release new version
-  Issuer.defaultHttpOptions = {form: true};
   const pdkIssuer = await Issuer.discover(issuer);
   const client = new pdkIssuer.Client({ client_id, client_secret });
+  if (!opener) {
+    opener = defaultOpener;
+  }
   let callbackUri;
 
   // Resolve when response is delivered to the local http server

@@ -51,6 +51,8 @@ let makePanelSession = exports.makePanelSession = (() => {
  * After id_token has expired, it will be refreshed using refresh_token
  * @param client_id client application identifier
  * @param client_secret client application secret
+ * @param token_adapter adapter that will be used to get refresh token at the first time and store new refresh tokens.
+ * Should have getToken() and setToken() methods
  * @param issuer openID connect provider url
  * @returns {function(*=, *=)} session, function with two parameters: relative path to the resource
  * (e.g. 'ous' or 'panels/{id}') and options object that can include for example 'method', 'body' or 'query' properties
@@ -58,11 +60,26 @@ let makePanelSession = exports.makePanelSession = (() => {
 
 
 let makeAuthSession = exports.makeAuthSession = (() => {
-  var _ref4 = _asyncToGenerator(function* (client_id, client_secret, issuer = 'https://accounts.pdk.io') {
-    //create auth session with refresh tokens
-    let tokenSet = yield _authenticator2.default.authenticate(client_id, client_secret, _opener2.default, 'openid offline_access', issuer);
-    if (!tokenSet || !tokenSet.id_token) {
-      throw new Error('Cannot get id_token from OpenID Connect provider');
+  var _ref4 = _asyncToGenerator(function* (client_id, client_secret, token_adapter, issuer = 'https://accounts.pdk.io') {
+    let tokenSet;
+    if (!token_adapter) {
+      //create auth session with refresh tokens
+      tokenSet = yield _authenticator2.default.authenticate(client_id, client_secret, _opener2.default, 'openid offline_access', issuer);
+      if (!tokenSet || !tokenSet.id_token) {
+        throw new Error('Cannot get id_token from OpenID Connect provider');
+      }
+      //if there is refresh token in the response, we will use it for refreshing
+      if (tokenSet.refresh_token) {
+        token_adapter = new _memoryAdapter2.default();
+        token_adapter.setToken(tokenSet.refresh_token);
+      }
+    } else {
+      let refreshToken = yield token_adapter.getToken();
+      if (!refreshToken) {
+        throw new Error('Cannot get refresh token from adapter.');
+      }
+      tokenSet = yield _authenticator2.default.refreshTokenSet(client_id, client_secret, refreshToken, issuer);
+      yield token_adapter.setToken(tokenSet.refresh_token);
     }
 
     let authSession = makeSession(tokenSet.id_token, _url2.default.resolve(issuer, 'api/'));
@@ -73,13 +90,10 @@ let makeAuthSession = exports.makeAuthSession = (() => {
           return yield authSession(callurl, callopts);
         } catch (err) {
           if (err && err.statusCode === 401) {
-            try {
-              if (!tokenSet.refresh_token) {
-                //if client does not support refresh tokens (implicit authentication flow) we will get token set from /auth
-                throw new Error();
-              }
+            if (token_adapter) {
               tokenSet = yield _authenticator2.default.refreshTokenSet(client_id, client_secret, tokenSet.refresh_token, issuer);
-            } catch (err) {
+              yield token_adapter.setToken(tokenSet.refresh_token);
+            } else {
               tokenSet = yield _authenticator2.default.authenticate(client_id, client_secret, _opener2.default, issuer);
             }
             authSession = makeSession(tokenSet.id_token, _url2.default.resolve(issuer, 'api/'));
@@ -89,13 +103,13 @@ let makeAuthSession = exports.makeAuthSession = (() => {
         }
       });
 
-      return function (_x7) {
+      return function (_x8) {
         return _ref5.apply(this, arguments);
       };
     })();
   });
 
-  return function makeAuthSession(_x5, _x6) {
+  return function makeAuthSession(_x5, _x6, _x7) {
     return _ref4.apply(this, arguments);
   };
 })();
@@ -125,6 +139,10 @@ var _authApi2 = _interopRequireDefault(_authApi);
 var _authenticator = require('./authenticator');
 
 var _authenticator2 = _interopRequireDefault(_authenticator);
+
+var _memoryAdapter = require('./adapters/memoryAdapter');
+
+var _memoryAdapter2 = _interopRequireDefault(_memoryAdapter);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 

@@ -5,6 +5,7 @@ import opener from 'opener';
 import panelApi from './panelApi';
 import authApi from './authApi';
 import authenticator from './authenticator';
+import MemoryAdapter from './adapters/memoryAdapter';
 
 /**
  * Create a wrapper around the `got` library for simplifying authenticated requests to API endpoints
@@ -62,15 +63,32 @@ export async function makePanelSession(authSession, panel_id) {
  * After id_token has expired, it will be refreshed using refresh_token
  * @param client_id client application identifier
  * @param client_secret client application secret
+ * @param token_adapter adapter that will be used to get refresh token at the first time and store new refresh tokens.
+ * Should have getToken() and setToken() methods
  * @param issuer openID connect provider url
  * @returns {function(*=, *=)} session, function with two parameters: relative path to the resource
  * (e.g. 'ous' or 'panels/{id}') and options object that can include for example 'method', 'body' or 'query' properties
  */
-export async function makeAuthSession(client_id, client_secret, issuer = 'https://accounts.pdk.io') {
-  //create auth session with refresh tokens
-  let tokenSet = await authenticator.authenticate(client_id, client_secret, opener, 'openid offline_access', issuer);
-  if (!tokenSet || !tokenSet.id_token) {
-    throw new Error('Cannot get id_token from OpenID Connect provider');
+export async function makeAuthSession(client_id, client_secret, token_adapter, issuer = 'https://accounts.pdk.io') {
+  let tokenSet;
+  if (!token_adapter) {
+    //create auth session with refresh tokens
+    tokenSet = await authenticator.authenticate(client_id, client_secret, opener, 'openid offline_access', issuer);
+    if (!tokenSet || !tokenSet.id_token) {
+      throw new Error('Cannot get id_token from OpenID Connect provider');
+    }
+    //if there is refresh token in the response, we will use it for refreshing
+    if (tokenSet.refresh_token) {
+      token_adapter = new MemoryAdapter();
+      token_adapter.setToken(tokenSet.refresh_token);
+    }
+  } else {
+    let refreshToken = await token_adapter.getToken();
+    if (!refreshToken) {
+      throw new Error('Cannot get refresh token from adapter.');
+    }
+    tokenSet = await authenticator.refreshTokenSet(client_id, client_secret, refreshToken, issuer);
+    await token_adapter.setToken(tokenSet.refresh_token);
   }
 
   let authSession = makeSession(tokenSet.id_token, url.resolve(issuer, 'api/'));
@@ -80,13 +98,10 @@ export async function makeAuthSession(client_id, client_secret, issuer = 'https:
       return await authSession(callurl, callopts);
     } catch (err) {
       if (err && err.statusCode === 401) {
-        try {
-          if (!tokenSet.refresh_token) {
-            //if client does not support refresh tokens (implicit authentication flow) we will get token set from /auth
-            throw new Error();
-          }
+        if (token_adapter) {
           tokenSet = await authenticator.refreshTokenSet(client_id, client_secret, tokenSet.refresh_token, issuer);
-        } catch (err) {
+          await token_adapter.setToken(tokenSet.refresh_token);
+        } else {
           tokenSet = await authenticator.authenticate(client_id, client_secret, opener, issuer);
         }
         authSession = makeSession(tokenSet.id_token, url.resolve(issuer, 'api/'));
@@ -100,5 +115,5 @@ export async function makeAuthSession(client_id, client_secret, issuer = 'https:
 export default {
   makeSession,
   makePanelSession,
-  makeAuthSession
+  makeAuthSession,
 };
