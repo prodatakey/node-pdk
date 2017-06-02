@@ -12,11 +12,7 @@ var _opener2 = _interopRequireDefault(_opener);
 
 var _authenticator = require('../authenticator');
 
-var _authenticator2 = _interopRequireDefault(_authenticator);
-
 var _session = require('../session');
-
-var _session2 = _interopRequireDefault(_session);
 
 var _authApi = require('../authApi');
 
@@ -35,15 +31,15 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 process.on('unhandledRejection', r => console.log(r));
 
 _asyncToGenerator(function* () {
-  let tokenset = yield (0, _authenticator2.default)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, _opener2.default);
-  const authsession = (0, _session2.default)(tokenset.id_token);
+  let tokenset = yield (0, _authenticator.authenticate)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, _opener2.default, 'openid');
+  let authsession = (0, _session.makeSession)(tokenset.id_token);
 
   // Connect to the panel and itemize asset info
   // Panel => InventoriedPanel
   const inventoryPanel = _fp2.default.curry((() => {
     var _ref2 = _asyncToGenerator(function* (authsession, { id, name, uri }) {
       // Create an authentication session to the panel's API
-      const panelsession = (0, _session2.default)((yield (0, _authApi.getPanelToken)(authsession, id)), _url2.default.resolve(uri, 'api/'));
+      const panelsession = (0, _session.makeSession)((yield (0, _authApi.getPanelToken)(authsession, id)), _url2.default.resolve(uri, 'api/'));
 
       // Get the list of configured devices
       let connected = false;
@@ -76,18 +72,27 @@ _asyncToGenerator(function* () {
   // OU => InventoriedOU
   const inventoryOu = _fp2.default.curry((() => {
     var _ref3 = _asyncToGenerator(function* (authsession, ouId) {
-      const { name, owner, panels, children } = yield (0, _authApi.getOu)(authsession, ouId);
+      let ou;
+      try {
+        ou = yield (0, _authApi.getOu)(authsession, ouId);
+      } catch (err) {
+        if (err.statusCode === 401) {
+          tokenset = yield (0, _authenticator.refreshTokenSet)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, tokenset.refresh_token);
+          authsession = (0, _session.makeSession)(tokenset.id_token);
+          ou = yield (0, _authApi.getOu)(authsession, ouId);
+        }
+      }
 
-      console.log(`${name}: panels ${panels.length} children ${children.length}`);
+      console.log(`${ou.name}: panels ${ou.panels.length} children ${ou.children.length}`);
 
       // Return the inventoried OU
       return {
-        name,
-        owner,
+        name: ou.name,
+        owner: ou.owner,
         // Inventory each panel in the OU
-        panels: yield _asyncp2.default.map(panels, inventoryPanel(authsession)),
+        panels: yield _asyncp2.default.map(ou.panels, inventoryPanel(authsession)),
         // Recurse to inventory any children of this OU
-        children: yield _asyncp2.default.map(children, _fp2.default.compose(inventoryOu(authsession), function (ou) {
+        children: yield _asyncp2.default.map(ou.children, _fp2.default.compose(inventoryOu(authsession), function (ou) {
           return ou.id;
         }))
       };

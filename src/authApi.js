@@ -12,3 +12,9 @@ export async function getPanelToken(session, id) {
 export async function getPanel(session, id) {
   return await session(`panels/${id}`);
 }
+
+export default {
+  getOu,
+  getPanelToken,
+  getPanel
+}
