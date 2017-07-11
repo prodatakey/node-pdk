@@ -1,5 +1,7 @@
 # PDK Javascript Client
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/prodatakey/node-pdk.svg)](https://greenkeeper.io/)
+
 This is the Javascript client for interacting with the PDK [auth](http://docs.pdkauthapi.apiary.io/) and [panel](http://docs.pdkapi.apiary.io/) APIs.
 
 This may be helpful as a guide even if you don't use Javascript.
