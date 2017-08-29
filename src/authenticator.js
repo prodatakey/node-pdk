@@ -1,14 +1,21 @@
 import { Issuer } from 'openid-client';
 import { createServer } from 'http';
 import defaultOpener from 'opener';
+import Debug from 'debug';
+
+let debug = Debug('pdk:authenticator');
 
 //FIXME: Remove this default http options setter after 'got' library will release new version
 Issuer.defaultHttpOptions = {form: true};
 
 export async function authenticate({ client_id, client_secret, scope = 'openid', issuer = 'https://accounts.pdk.io', opener = defaultOpener, refresh_token }) {
+  debug(`Authenticating id: ${client_id} sec: ${client_secret}`);
+
   const pdkIssuer = await Issuer.discover(issuer);
   const client = new pdkIssuer.Client({ client_id, client_secret });
   let callbackUri;
+
+  debug(`Got client`);
 
   let token_set = { refresh_token };
 
@@ -16,6 +23,7 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
   // see session.js for usage
   const oauthtoken_set = async () => {
     if(!token_set.id_token) {
+      debug(`Initial refresh of oauthtoken`);
       oauthtoken_set.refresh()
     }
 
@@ -26,8 +34,10 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
 
   oauthtoken_set.refresh = async () => {
     if(token_set.refresh_token) {
+      debug(`Refreshing with refresh token`);
       token_set = await client.refresh(token_set.refresh_token);
     } else {
+      debug(`Refreshing with user flow`);
       token_set = await doUserFlow();
     }
   };
@@ -47,6 +57,8 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
   async function doUserFlow() {
     return new Promise((resolve, reject) => {
       const server = createServer((req, res) => {
+        debug(`Got an auth response server client`);
+
         // Parse the auth parameters off of the request
         const params = client.callbackParams(req);
 
@@ -54,19 +66,23 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
         res.end();
 
         // Ignore requests with no code and no error
-        if(!params.code && !params.error)
+        if(!params.code && !params.error) {
+          debug(`Ignoring auth response with no code or error`);
           return;
+        }
 
         // Got an auth response, shut the server down
         server.close();
 
         // Reject on error response
         if(params.error) {
+          debug(`Error response from idp server: ${params.error_description || params.error}`);
           reject(params.error_description || params.error);
           return;
         }
 
         // Backchannel the code for token exchange
+        debug(`Backchanneling the auth code for a token`);
         client.authorizationCallback(callbackUri, params)
           .then(resolve)
           .catch(reject);
@@ -95,6 +111,7 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
         }
 
         const authUrl = client.authorizationUrl(authorizationUrlParams);
+        debug(`Opening the user flow auth interface to ${authUrl}`);
         opener(authUrl);
       });
     });
