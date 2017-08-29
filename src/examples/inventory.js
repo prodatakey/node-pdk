@@ -10,12 +10,12 @@ import p from 'asyncp';
 process.on('unhandledRejection', r => console.log(r));
 
 (async function() {
-  let tokenset = await authenticate(
-    process.env.PDK_CLIENT_ID,
-    process.env.PDK_CLIENT_SECRET,
-    opener,
-    'openid'
-  );
+  let tokenset = await authenticate({
+    client_id: process.env.PDK_CLIENT_ID,
+    client_secret: process.env.PDK_CLIENT_SECRET,
+    opener: opener,
+    scope: 'openid'
+  });
   let authsession = makeSession(tokenset.id_token);
 
   // Connect to the panel and itemize asset info

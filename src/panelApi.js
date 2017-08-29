@@ -1,7 +1,7 @@
 import url from 'url';
 import io from 'socket.io-client';
-import {getPanelToken} from './authApi';
-import {makeSession as makeAuthSession} from './session';
+import { getPanelToken } from './authApi';
+import { makeSession as makeAuthSession } from './session';
 
 export async function makeSession(authSession, {id, uri}) {
   const token = await getPanelToken(authSession, id);

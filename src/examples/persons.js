@@ -1,15 +1,14 @@
-/**
- * Created by dmitry.redkovolosov on 12.05.2017.
- */
-
 import {makePanelSession, makeAuthSession} from '../session';
 import util from 'util';
 
-
 process.on('unhandledRejection', r => console.log(r));
+
 (async function () {
-  let authSession = await makeAuthSession(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, null,
-    'https://testaccounts.pdk.io');
+  let authSession = await makeAuthSession({
+      client_id: process.env.PDK_CLIENT_ID,
+      client_secret: process.env.PDK_CLIENT_SECRET,
+      issuer: 'https://testaccounts.pdk.io'
+    });
 
   let panelSession = await makePanelSession(authSession, process.env.PDK_PANEL_ID);
 

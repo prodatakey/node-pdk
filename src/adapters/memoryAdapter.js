@@ -1,8 +1,4 @@
 /**
- * Created by dmitry.redkovolosov on 01.06.2017.
- */
-
-/**
  * This is the base adapter for storing refresh tokens. Token will be stored in memory
  */
 export default class MemoryAdapter {
