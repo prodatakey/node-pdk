@@ -13,10 +13,9 @@ process.on('unhandledRejection', r => console.log(r));
   let tokenset = await authenticate({
     client_id: process.env.PDK_CLIENT_ID,
     client_secret: process.env.PDK_CLIENT_SECRET,
-    opener: opener,
-    scope: 'openid'
+    opener: opener
   });
-  let authsession = makeSession(tokenset.id_token);
+  let authsession = makeSession(tokenset);
 
   // Connect to the panel and itemize asset info
   // Panel => InventoriedPanel
