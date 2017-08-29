@@ -1,11 +1,11 @@
 import url from 'url';
 import io from 'socket.io-client';
 import { getPanelToken } from './authApi';
-import { makesession as makeauthsession } from './session';
+import { makeSession as makeAuthSession } from './session';
 
-export async function makesession(authsession, { id, uri }) {
-  const token = await getPanelToken(authsession, id);
-  const session = makeauthsession(
+export async function makeSession(authSession, {id, uri}) {
+  const token = await getPanelToken(authSession, id);
+  const session = makeAuthSession(
     token,
     url.resolve(uri, 'api/')
   );
@@ -21,3 +21,4 @@ export async function makesession(authsession, { id, uri }) {
   return session;
 }
 
+export default {makeSession};
