@@ -31,8 +31,12 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 process.on('unhandledRejection', r => console.log(r));
 
 _asyncToGenerator(function* () {
-  let tokenset = yield (0, _authenticator.authenticate)(process.env.PDK_CLIENT_ID, process.env.PDK_CLIENT_SECRET, _opener2.default, 'openid');
-  let authsession = (0, _session.makeSession)(tokenset.id_token);
+  let tokenset = yield (0, _authenticator.authenticate)({
+    client_id: process.env.PDK_CLIENT_ID,
+    client_secret: process.env.PDK_CLIENT_SECRET,
+    opener: _opener2.default
+  });
+  let authsession = (0, _session.makeSession)(tokenset);
 
   // Connect to the panel and itemize asset info
   // Panel => InventoriedPanel
