@@ -9,13 +9,13 @@ let debug = Debug('pdk:authenticator');
 Issuer.defaultHttpOptions = {form: true};
 
 export async function authenticate({ client_id, client_secret, scope = 'openid', issuer = 'https://accounts.pdk.io', opener = defaultOpener, refresh_token }) {
-  debug(`Authenticating id: ${client_id} sec: ${client_secret}`);
+  debug(`Authenticating id: ${client_id}`);
 
   const pdkIssuer = await Issuer.discover(issuer);
   const client = new pdkIssuer.Client({ client_id, client_secret });
   let callbackUri;
 
-  debug(`Got client`);
+  debug(`Got configured oidc client`);
 
   let token_set = { refresh_token };
 
@@ -24,7 +24,7 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
   const oauthtoken_set = async () => {
     if(!token_set.id_token) {
       debug(`Initial refresh of oauthtoken`);
-      oauthtoken_set.refresh()
+      await oauthtoken_set.refresh()
     }
 
     //TODO: Check expiration time of token and optimistically renew it
@@ -40,6 +40,7 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
       debug(`Refreshing with user flow`);
       token_set = await doUserFlow();
     }
+    debug(`Got fresh token: ${JSON.stringify(token_set)}`);
   };
 
   oauthtoken_set.revoke = async () => {
@@ -98,15 +99,16 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
 
         callbackUri = `http://localhost:${server.address().port}/authCallback`;
 
-        scope = scope ? scope.split(' ') : null;
-        if (!scope || scope.indexOf('openid') === -1) {
+        const ascope = scope ? scope.split(' ') : null;
+        if (!ascope || ascope.indexOf('openid') === -1) {
           reject(new Error('"Scope" parameter must contain "openid" value'));
         }
+
         let authorizationUrlParams = {
           redirect_uri: callbackUri,
-          scope: scope.join(' ')
+          scope: ascope.join(' ')
         };
-        if (scope.indexOf('offline_access') !== -1) {
+        if (ascope.indexOf('offline_access') !== -1) {
           authorizationUrlParams.prompt = 'consent';
         }
 
