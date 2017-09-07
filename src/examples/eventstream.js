@@ -3,7 +3,6 @@ import {authenticate} from '../authenticator';
 import {makeSession} from '../session';
 import {makeSession as makePanelSession } from '../panelApi';
 import Debug from 'debug'
-import _ from 'lodash/fp';
 
 const debug = Debug('pdk:event-stream');
 

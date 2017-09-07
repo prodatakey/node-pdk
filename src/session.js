@@ -10,7 +10,7 @@ const debug = Debug('pdk:session');
  * The session is meant to be a long-lived abstraction that simplifies interaction
  * with the API by handling authentication concerns automatically as calls happen.
  *
- * @param {string} id_token The JWT returned from the authentication process.
+ * @param {function} token_set The token set returned from the authentication process.
  * @param {string} baseUrl This base URL used for resolving relative URLs in the endpoint requests.
  */
 export function makeSession(token_set, baseUrl = 'https://accounts.pdk.io/api/') {

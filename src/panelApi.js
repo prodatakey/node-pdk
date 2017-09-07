@@ -34,7 +34,6 @@ export async function makeSession(authSession, {id, uri}) {
         debug(`Got invalid Token event`);
 
         // Force a token refresh
-        setTimeout(() => {
         token.refresh().then(() => {
           return token().then(
             ts => {
@@ -44,8 +43,6 @@ export async function makeSession(authSession, {id, uri}) {
             }
           );
         });
-        }, 10000);
-
       });
     };
     subInvalidToken();
