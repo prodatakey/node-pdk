@@ -37,18 +37,19 @@ export async function makeSession(authSession, {id, uri}) {
       debug(`Got invalid Token event`);
 
       // Force a token refresh
-      token.refresh().then(() => {
-        return token().then(ts => {
+      token.refresh()
+        .then(token)
+        .then(ts => {
           debug(`Panel token refreshed, updating event stream token`);
           id_token = ts.id_token;
           socket.emit('renewedToken', { token: id_token });
 
           // Reconnect the invalidToken message on the websocket
           socket.once('invalidToken', invalidHandler);
+        })
+        .catch(err => {
+          debug(`Error refreshing token: ${err.message}`);
         });
-      }).catch(err => {
-        debug(`Error refreshing token: ${err.message}`);
-      });
     };
     socket.once('invalidToken', invalidHandler);
 

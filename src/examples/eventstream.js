@@ -28,6 +28,6 @@ const debug = Debug('pdk:event-stream');
   const stream = panelsession.createEventStream();
 
   // Subscribe to the connect/disconnect event
-  stream.event$.subscribe(d => debug(`connection event: ${JSON.stringify(d)}`));
+  stream.on('liveEvent', d => debug(`liveEvent: ${JSON.stringify(d)}`));
 
 }());
