@@ -13,6 +13,7 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
 
   const pdkIssuer = await Issuer.discover(issuer);
   const client = new pdkIssuer.Client({ client_id, client_secret });
+  client.CLOCK_TOLERANCE = 20;
   let callbackUri;
 
   debug(`Got configured oidc client`);

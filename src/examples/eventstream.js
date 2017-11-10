@@ -1,12 +1,14 @@
 import opener from 'opener';
-import {authenticate} from '../authenticator';
-import {makeSession} from '../session';
-import {makeSession as makePanelSession } from '../panelApi';
+import { authenticate } from '../authenticator';
+import { makeSession } from '../session';
+import { getPanel } from '../authApi';
+import { makeSession as makePanelSession } from '../panelApi';
 import Debug from 'debug'
 
 const debug = Debug('pdk:event-stream');
 
 (async function() {
+  // Authenticate and create a session
   let tokenset = await authenticate({
     client_id: process.env.PDK_CLIENT_ID,
     client_secret: process.env.PDK_CLIENT_SECRET,
@@ -14,7 +16,9 @@ const debug = Debug('pdk:event-stream');
     scope: 'openid offline_access',
   });
   const authsession = await makeSession(tokenset);
-  const panel = await authsession('panels/10702GA')
+
+  // Get the panel
+  const panel = await getPanel(authsession, '10702GA')
   debug(`Got panel ${JSON.stringify(panel)}`);
 
   // Create an authentication session to the panel's API
@@ -25,4 +29,5 @@ const debug = Debug('pdk:event-stream');
 
   // Subscribe to the connect/disconnect event
   stream.event$.subscribe(d => debug(`connection event: ${JSON.stringify(d)}`));
+
 }());
