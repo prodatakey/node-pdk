@@ -1,5 +1,8 @@
 import got from 'got';
 import url from 'url';
+import Debug from 'debug';
+
+const debug = Debug('pdk:session');
 
 /**
  * Create a wrapper around the `got` library for simplifying authenticated requests to API endpoints
@@ -7,7 +10,7 @@ import url from 'url';
  * The session is meant to be a long-lived abstraction that simplifies interaction
  * with the API by handling authentication concerns automatically as calls happen.
  *
- * @param {string} id_token The JWT returned from the authentication process.
+ * @param {function} token_set The token set returned from the authentication process.
  * @param {string} baseUrl This base URL used for resolving relative URLs in the endpoint requests.
  */
 export function makeSession(token_set, baseUrl = 'https://accounts.pdk.io/api/') {
@@ -31,16 +34,22 @@ export function makeSession(token_set, baseUrl = 'https://accounts.pdk.io/api/')
     );
 
     try {
+      debug(`Sending API request ${callurl}, ${JSON.stringify(callopts)}`);
       return await call();
     } catch (err) {
+      debug(`Error from API request ${JSON.stringify(err)}`);
+
       if (err && err.statusCode === 401) {
         // When we get a status 401 we are in need a valid tokenset
         // this can happen for a number of reasons, the token should update optimistically
         // but things like excessive clock skew can throw that off.
 
+        debug(`Forcing token set refresh`);
+
         // We force the token_set to refresh here
         await token_set.refresh();
 
+        debug(`Retrying API call with fresh token set`);
         // Then retry the call
         return await call();
       }

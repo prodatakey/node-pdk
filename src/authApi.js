@@ -28,7 +28,7 @@ export async function getPanelToken(session, id) {
   };
 
   token_set.refresh = async() => {
-    id_token = (await session( `panels/${id}/token`, { method: 'POST' })).token;
+    id_token = (await session(`panels/${id}/token`, { method: 'POST' })).token;
   };
 
   return token_set;

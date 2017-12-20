@@ -1,7 +1,7 @@
 import { writeFile } from 'fs';
 import url from 'url';
 import opener from 'opener';
-import {authenticate, refreshTokenSet} from '../authenticator';
+import {authenticate} from '../authenticator';
 import {makeSession} from '../session';
 import { getOu, getPanelToken } from '../authApi';
 import _ from 'lodash/fp';

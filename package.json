@@ -1,28 +1,33 @@
 {
   "name": "pdk-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ProdataKey pdk.io API Client Library for Javascript",
   "scripts": {
-    "bstart": "babel-node",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel src --out-dir ."
+    "test": "mocha -r src/test-setup.js -r babel-register src/**/*.spec.js",
+    "watch": "mocha -wr src/test-setup.js -r babel-register src/**/*.spec.js --inspect",
+    "build": "babel src --out-dir .",
+    "bstart": "babel-node"
   },
   "author": "Joshua Perry <josh@pdk.io>",
   "license": "MIT",
   "dependencies": {
     "asyncp": "^0.8.0",
     "debug": "^3.0.1",
-    "got": "https://github.com/sindresorhus/got.git#c86706bd23277ba033abefaf92a9c8fa69f78eee",
+    "got": "git+https://github.com/sindresorhus/got.git#c86706bd23277ba033abefaf92a9c8fa69f78eee",
     "opener": "^1.4.2",
-    "openid-client": "^1.3.1",
-    "socket.io-client": "^1.7.3"
+    "openid-client": "^1.15.0",
+    "socket.io-client": "^2.0.3"
   },
   "devDependencies": {
-    "babel-cli": "^6.18.0",
-    "babel-plugin-transform-object-rest-spread": "^6.20.2",
-    "babel-preset-env": "^1.1.4",
-    "chai": "^3.5.0",
-    "dirty-chai": "^1.2.2",
-    "mocha": "^3.2.0"
+    "babel-cli": "^6.26.0",
+    "babel-plugin-syntax-object-rest-spread": "^6.13.0",
+    "babel-preset-env": "^1.6.0",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "dirty-chai": "^2.0.1",
+    "mocha": "^4.0.1",
+    "proxyquire": "^1.8.0",
+    "sinon": "^4.1.2",
+    "sinon-chai": "^2.14.0"
   }
 }
