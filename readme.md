@@ -30,16 +30,6 @@ import { authenticate } from 'pdk';
 const tokenset = await authenticate(client_id, client_secret);
 ```
 
-These operations also return Promises if this form of async operation handling is preferred, or if `await` is not available in the JS environment.
-
-```javascript
-import { authenticate } from 'pdk';
-authenticate(client_id, client_secret)
-  .then(tokenset => {
-    // use tokenset here
-  });
-```
-
 ### Creating a session with the Auth API
 
 Once calling `authenticate` to get an authentication context, use `makesession` to create a session with the auth API.
@@ -48,22 +38,13 @@ This session will automatically manage the authentication token lifetime, using 
 See the auth API documentation for operations and data types available here.
 
 ```javascript
-import { authenticate, makesession } from 'pdk';
+import { authenticate, makeSession } from 'pdk';
 
 try {
-  const session = await makesession(await authenticate(client_id, client_secret));
+  const session = await makeSession(await authenticate(client_id, client_secret));
 } catch(err) {
   console.log(`Error authenticating: ${err.msg}`);
 }
-```
-
-Same as above, in Promise style:
-
-```javascript
-import { authenticate, makesession } from 'pdk';
-const session = authenticate(client_id, client_secret)
-  .then(makesession)
-  .catch(err => console.log(`Error authenticating: ${err.msg}`));
 ```
 
 This `session` function is a thin facade around [got](https://github.com/sindresorhus/got) that allows easily making authenticated requests, options are passed on to got.
@@ -85,16 +66,16 @@ See the panel API documentation for operations and data types available here.
 **Note**: The term *panel* in the documentation is synonymous with the PDK cloud node hardware.
 
 ```javascript
-import { authenticate, makesession, makepanelsession } from 'pdk';
+import { authenticate, makeSession, makePanelSession } from 'pdk';
 
 // Authenticate and create a session with the auth API
-const session = await makesession(await authenticate(client_id, client_secret));
+const session = await makeSession(await authenticate(client_id, client_secret));
 
 // Get a panel document from the auth API
 const panel = await session('panels/1070BBB');
 
 // Create an authenticated session with the panel
-const panelsession = await makepanelsession(session, panel);
+const panelsession = await makePanelSession(session, panel);
 
 // Retrieve an entity from the panel API
 const me = await panelsession('people/123');
@@ -122,6 +103,17 @@ stream.emit('command', {
   body: { doorId: 6 },
   id
 });
+```
+
+### Client Authentication
+
+Applications that support the client credentials authentication flow can use the `authenticateclient`, in the same way as the `authenticate` method.
+
+```javascript
+import { authenticateclient, makesession } from 'pdk';
+
+// Authenticate and create a session with the auth API
+const session = await makesession(await authenticateclient(client_id, client_secret));
 ```
 
 ### Functions
