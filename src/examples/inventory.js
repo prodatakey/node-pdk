@@ -9,6 +9,7 @@ import p from 'asyncp';
 import Debug from 'debug';
 
 let debug = Debug('pdk:inventory');
+const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
 
 (async function() {
   let tokenset;
@@ -16,6 +17,7 @@ let debug = Debug('pdk:inventory');
     tokenset = await authenticate({
       client_id: process.env.PDK_CLIENT_ID,
       client_secret: process.env.PDK_CLIENT_SECRET,
+      issuer: IDP_URI,
       opener: opener
     });
   } catch(err) {
@@ -23,7 +25,7 @@ let debug = Debug('pdk:inventory');
     return;
   }
 
-  let authsession = makeSession(tokenset);
+  let authsession = makeSession(tokenset, url.resolve(IDP_URI, `api/`));
 
   // Connect to the panel and itemize asset info
   // Panel => InventoriedPanel
