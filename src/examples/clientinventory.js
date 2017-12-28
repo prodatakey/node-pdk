@@ -1,8 +1,6 @@
 import { writeFile } from 'fs';
 import url from 'url';
-import opener from 'opener';
-import {authenticate} from '../authenticator';
-import {makeSession} from '../session';
+import { authenticateclient, makeSession } from '../';
 import { getOu, getPanelToken } from '../authApi';
 import _ from 'lodash/fp';
 import p from 'asyncp';
@@ -14,11 +12,10 @@ const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
 (async function() {
   let tokenset;
   try {
-    tokenset = await authenticate({
+    tokenset = await authenticateclient({
       client_id: process.env.PDK_CLIENT_ID,
       client_secret: process.env.PDK_CLIENT_SECRET,
-      issuer: IDP_URI,
-      opener: opener
+      issuer: IDP_URI
     });
   } catch(err) {
     debug(`There was an error authenticating: ${err.message}`);
@@ -61,7 +58,7 @@ const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
   // Recursively processes asset info for every panel in an OU and its children OUs
   // OU => InventoriedOU
   const inventoryOu = _.curry(async(authsession, ouId) => {
-    let ou = await getOu(authsession, ouId);
+    const ou = await getOu(authsession, ouId);
 
     console.log(`${ou.name}: panels ${ou.panels.length} children ${ou.children.length}`);
 
@@ -79,7 +76,6 @@ const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
   try {
     // OU pseudo id 'mine' is the authenticated user's root organization
     const assets = await inventoryOu(authsession, 'mine');
-
     // Write the inventory out to a file
     writeFile('./inventory.json', JSON.stringify(assets, null, 2), 'utf-8');
   } catch(err) {

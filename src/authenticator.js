@@ -2,6 +2,7 @@ import { Issuer } from 'openid-client';
 import { createServer } from 'http';
 import defaultOpener from 'opener';
 import Debug from 'debug';
+import { authenticateclient } from './clientauthenticator';
 
 let debug = Debug('pdk:authenticator');
 
@@ -121,6 +122,8 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
   }
 }
 
+export { authenticateclient };
 export default {
-  authenticate
+  authenticate,
+  authenticateclient
 };
