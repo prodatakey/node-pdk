@@ -3,43 +3,73 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.makeSession = undefined;
-
-let makeSession = exports.makeSession = (() => {
-  var _ref = _asyncToGenerator(function* (authSession, { id, uri }) {
-    const token = yield (0, _authApi.getPanelToken)(authSession, id);
-    const session = (0, _session.makeSession)(token, _url2.default.resolve(uri, 'api/'));
-
-    session.connectStream = function () {
-      const stream = (0, _socket2.default)(uri, { query: `token=${token}` });
-      return new Promise((resolve, reject) => {
-        stream.once('connect', () => resolve(stream));
-        stream.once('error', reject);
-      });
-    };
-
-    return session;
-  });
-
-  return function makeSession(_x, _x2) {
-    return _ref.apply(this, arguments);
-  };
-})();
+exports.makeSession = makeSession;
 
 var _url = require('url');
 
 var _url2 = _interopRequireDefault(_url);
 
-var _socket = require('socket.io-client');
-
-var _socket2 = _interopRequireDefault(_socket);
-
 var _authApi = require('./authApi');
 
 var _session = require('./session');
 
+var _socket = require('socket.io-client');
+
+var _socket2 = _interopRequireDefault(_socket);
+
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+const debug = (0, _debug2.default)('pdk:panelapi');
+
+async function makeSession(authSession, { id, uri }) {
+  debug('Creating panel session');
+
+  // Set up a panel session
+  const token = await (0, _authApi.getPanelToken)(authSession, id);
+  const session = (0, _session.makeSession)(token, _url2.default.resolve(uri, 'api/'));
+  // Cache the id_token so the non-async reconnect_attempt handler can get to it
+  let id_token = (await token()).id_token;
+
+  session.createEventStream = function () {
+    // Add the auth token to the socket.io connection URL querystring
+    const socket = (0, _socket2.default)(uri, { query: { token: id_token } });
+
+    // Update the token for reconnect attempts
+    socket.on('reconnect_attempt', () => {
+      socket.io.opts.query = {
+        token: id_token
+      };
+    });
+
+    // In order to squelch multiple events while refreshing,
+    // the invalidToken handler fires once and must be resubscribed after successful handling.
+    // TODO: Set a timer to do this prospectively _before_ the token expires
+    // Watch for an `invalidToken` message and respond with a `renewedToken` message
+    const invalidHandler = () => {
+      debug(`Got invalid Token event`);
+
+      // Force a token refresh
+      token.refresh().then(token).then(ts => {
+        debug(`Panel token refreshed, updating event stream token`);
+        id_token = ts.id_token;
+        socket.emit('renewedToken', { token: id_token });
+
+        // Reconnect the invalidToken message on the websocket
+        socket.once('invalidToken', invalidHandler);
+      }).catch(err => {
+        debug(`Error refreshing token: ${err.message}`);
+      });
+    };
+    socket.once('invalidToken', invalidHandler);
+
+    return socket;
+  };
+
+  return session;
+}
 
 exports.default = { makeSession };

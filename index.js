@@ -6,15 +6,33 @@ Object.defineProperty(exports, "__esModule", {
 
 var _authenticator = require('./authenticator');
 
-var _authenticator2 = _interopRequireDefault(_authenticator);
+Object.keys(_authenticator).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _authenticator[key];
+    }
+  });
+});
 
 var _session = require('./session');
 
-var _session2 = _interopRequireDefault(_session);
+Object.keys(_session).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _session[key];
+    }
+  });
+});
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _panelApi = require('./panelApi');
 
-exports.default = {
-  authenticator: _authenticator2.default,
-  session: _session2.default
-};
+Object.defineProperty(exports, 'makePanelSession', {
+  enumerable: true,
+  get: function () {
+    return _panelApi.makeSession;
+  }
+});

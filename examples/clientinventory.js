@@ -6,13 +6,7 @@ var _url = require('url');
 
 var _url2 = _interopRequireDefault(_url);
 
-var _opener = require('opener');
-
-var _opener2 = _interopRequireDefault(_opener);
-
-var _authenticator = require('../authenticator');
-
-var _session = require('../session');
+var _2 = require('../');
 
 var _authApi = require('../authApi');
 
@@ -36,24 +30,23 @@ const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
 (async function () {
   let tokenset;
   try {
-    tokenset = await (0, _authenticator.authenticate)({
+    tokenset = await (0, _2.authenticateclient)({
       client_id: process.env.PDK_CLIENT_ID,
       client_secret: process.env.PDK_CLIENT_SECRET,
-      issuer: IDP_URI,
-      opener: _opener2.default
+      issuer: IDP_URI
     });
   } catch (err) {
     debug(`There was an error authenticating: ${err.message}`);
     return;
   }
 
-  let authsession = (0, _session.makeSession)(tokenset, _url2.default.resolve(IDP_URI, `api/`));
+  let authsession = (0, _2.makeSession)(tokenset, _url2.default.resolve(IDP_URI, `api/`));
 
   // Connect to the panel and itemize asset info
   // Panel => InventoriedPanel
   const inventoryPanel = _fp2.default.curry(async (authsession, { id, name, uri }) => {
     // Create an authentication session to the panel's API
-    const panelsession = (0, _session.makeSession)((await (0, _authApi.getPanelToken)(authsession, id)), _url2.default.resolve(uri, 'api/'));
+    const panelsession = (0, _2.makeSession)((await (0, _authApi.getPanelToken)(authsession, id)), _url2.default.resolve(uri, 'api/'));
 
     // Get the list of configured devices
     let connected = false;
@@ -80,7 +73,7 @@ const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
   // Recursively processes asset info for every panel in an OU and its children OUs
   // OU => InventoriedOU
   const inventoryOu = _fp2.default.curry(async (authsession, ouId) => {
-    let ou = await (0, _authApi.getOu)(authsession, ouId);
+    const ou = await (0, _authApi.getOu)(authsession, ouId);
 
     console.log(`${ou.name}: panels ${ou.panels.length} children ${ou.children.length}`);
 
@@ -98,7 +91,6 @@ const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
   try {
     // OU pseudo id 'mine' is the authenticated user's root organization
     const assets = await inventoryOu(authsession, 'mine');
-
     // Write the inventory out to a file
     (0, _fs.writeFile)('./inventory.json', JSON.stringify(assets, null, 2), 'utf-8');
   } catch (err) {
