@@ -16,6 +16,7 @@
     "got": "git+https://github.com/sindresorhus/got.git#c86706bd23277ba033abefaf92a9c8fa69f78eee",
     "opener": "^1.4.2",
     "openid-client": "^1.15.0",
+    "parse-link-header": "^1.0.1",
     "socket.io-client": "^2.0.3"
   },
   "devDependencies": {

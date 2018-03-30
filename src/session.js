@@ -1,6 +1,7 @@
 import got from 'got';
 import url from 'url';
 import Debug from 'debug';
+import parseLink from 'parse-link-header'
 
 const debug = Debug('pdk:session');
 
@@ -66,18 +67,39 @@ export function makeSession(token_set, baseUrl = 'https://accounts.pdk.io/api/')
     // This allows the call site to find the total number of paged items available on the server
     if(Array.isArray(resp.body) && 'x-total-count' in resp.headers) {
       resp.body.count = parseInt(resp.headers['x-total-count']);
+      resp.body.link = parseLink(resp.headers['link'])
     }
 
     return resp.body;
   };
 
-  // Sugar for setting paging querystring values
-  session.page = async (resource, page = 0, sort = 'asc', per_page = 100, callopts) =>
-    await session(resource, { query: { page, per_page, sort }, ...callopts });
-
   return session;
+}
+
+// Sugar for setting paging querystring values and communicating paging
+// info back via the query reference parameter
+export const page = async (session, resource, query, callopts = {}) => {
+  // Set defaults in reference object friendly way
+  query.page = query.page || 0
+  query.sort = query.sort || 'asc'
+  query.per_page = query.per_page || 100
+
+  // Make the call
+  const resp = await session(resource, { query, ...callopts })
+
+  // Set the next values into the paging context so the caller can call in a loop checking `more` on each iteration
+  if(resp.link && resp.link.next) {
+    query.page = resp.link.next.page
+    query.per_page = resp.link.next.per_page
+    query.more = true
+  } else {
+    query.more = false
+  }
+
+  return resp
 }
 
 export default {
   makeSession,
+  page
 };
