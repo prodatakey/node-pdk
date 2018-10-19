@@ -1,6 +1,7 @@
 import got from 'got';
 import url from 'url';
 import Debug from 'debug';
+import parseLink from 'parse-link-header'
 
 const debug = Debug('pdk:session');
 
@@ -27,15 +28,19 @@ export function makeSession(token_set, baseUrl = 'https://accounts.pdk.io/api/')
   }
 
   // Return an async function that makes a request to an API url and returns the body of the response
-  return async (callurl, callopts = {}) => {
-    const call = async() => (
+  // Simply returns only the body of a resource
+  // person = session('people/123');
+  const session = async (resource, callopts) => {
+    let resp;
+
+    const call = async (resource, callopts = {}) => (
       await freshHeaders(),
-      (await got(url.resolve(baseUrl, callurl), { ...options, ...callopts })).body
+      await got(url.resolve(baseUrl, resource), { ...options, ...callopts })
     );
 
     try {
-      debug(`Sending API request ${callurl}, ${JSON.stringify(callopts)}`);
-      return await call();
+      debug(`Sending API request ${resource}, ${JSON.stringify(callopts)}`);
+      resp = await call(resource, callopts);
     } catch (err) {
       debug(`Error from API request ${JSON.stringify(err)}`);
 
@@ -51,15 +56,45 @@ export function makeSession(token_set, baseUrl = 'https://accounts.pdk.io/api/')
 
         debug(`Retrying API call with fresh token set`);
         // Then retry the call
-        return await call();
+        resp = await call(resource, callopts);
       }
 
       // If we get here then lets rethrow this error for the caller to handle
       throw err;
     }
+
+    // Add a count property for requests with an array body and a total count header
+    // This allows the call site to find the total number of paged items available on the server
+    if(Array.isArray(resp.body) && 'x-total-count' in resp.headers) {
+      resp.body.count = parseInt(resp.headers['x-total-count']);
+      resp.body.link = parseLink(resp.headers['link'])
+    }
+
+    return resp.body;
   };
+
+  return session;
+}
+
+// Sugar for setting paging querystring values and communicating paging
+// info back via the query reference parameter
+export const page = async (session, resource, query, callopts = {}) => {
+  // Make the call
+  const resp = await session(resource, { query: { page: 0, sort: 'asc', per_page: 100, ...query }, ...callopts })
+
+  // Set the next values into the paging context so the caller can call in a loop checking `more` on each iteration
+  if(resp.link && resp.link.next) {
+    query.page = resp.link.next.page
+    query.per_page = resp.link.next.per_page
+    query.more = true
+  } else {
+    query.more = false
+  }
+
+  return resp
 }
 
 export default {
   makeSession,
+  page
 };

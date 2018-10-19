@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.page = undefined;
 exports.makeSession = makeSession;
 
 var _got = require('got');
@@ -16,6 +17,10 @@ var _url2 = _interopRequireDefault(_url);
 var _debug = require('debug');
 
 var _debug2 = _interopRequireDefault(_debug);
+
+var _parseLinkHeader = require('parse-link-header');
+
+var _parseLinkHeader2 = _interopRequireDefault(_parseLinkHeader);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -44,12 +49,16 @@ function makeSession(token_set, baseUrl = 'https://accounts.pdk.io/api/') {
   }
 
   // Return an async function that makes a request to an API url and returns the body of the response
-  return async (callurl, callopts = {}) => {
-    const call = async () => (await freshHeaders(), (await (0, _got2.default)(_url2.default.resolve(baseUrl, callurl), { ...options, ...callopts })).body);
+  // Simply returns only the body of a resource
+  // person = session('people/123');
+  const session = async (resource, callopts) => {
+    let resp;
+
+    const call = async (resource, callopts = {}) => (await freshHeaders(), await (0, _got2.default)(_url2.default.resolve(baseUrl, resource), { ...options, ...callopts }));
 
     try {
-      debug(`Sending API request ${callurl}, ${JSON.stringify(callopts)}`);
-      return await call();
+      debug(`Sending API request ${resource}, ${JSON.stringify(callopts)}`);
+      resp = await call(resource, callopts);
     } catch (err) {
       debug(`Error from API request ${JSON.stringify(err)}`);
 
@@ -65,15 +74,50 @@ function makeSession(token_set, baseUrl = 'https://accounts.pdk.io/api/') {
 
         debug(`Retrying API call with fresh token set`);
         // Then retry the call
-        return await call();
+        resp = await call(resource, callopts);
       }
 
       // If we get here then lets rethrow this error for the caller to handle
       throw err;
     }
+
+    // Add a count property for requests with an array body and a total count header
+    // This allows the call site to find the total number of paged items available on the server
+    if (Array.isArray(resp.body) && 'x-total-count' in resp.headers) {
+      resp.body.count = parseInt(resp.headers['x-total-count']);
+      resp.body.link = (0, _parseLinkHeader2.default)(resp.headers['link']);
+    }
+
+    return resp.body;
   };
+
+  return session;
 }
 
+// Sugar for setting paging querystring values and communicating paging
+// info back via the query reference parameter
+const page = exports.page = async (session, resource, query, callopts = {}) => {
+  // Set defaults in reference object friendly way
+  query.page = query.page || 0;
+  query.sort = query.sort || 'asc';
+  query.per_page = query.per_page || 100;
+
+  // Make the call
+  const resp = await session(resource, { query, ...callopts });
+
+  // Set the next values into the paging context so the caller can call in a loop checking `more` on each iteration
+  if (resp.link && resp.link.next) {
+    query.page = resp.link.next.page;
+    query.per_page = resp.link.next.per_page;
+    query.more = true;
+  } else {
+    query.more = false;
+  }
+
+  return resp;
+};
+
 exports.default = {
-  makeSession
+  makeSession,
+  page
 };
