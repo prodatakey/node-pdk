@@ -1,3 +1,3 @@
 export * from './authenticator';
 export * from './session';
-export { makeSession as makePanelSession } from './panelApi';
+export * from './panelApi';

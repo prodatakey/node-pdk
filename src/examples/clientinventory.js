@@ -10,20 +10,6 @@ let debug = Debug('pdk:inventory');
 const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
 
 (async function() {
-  let tokenset;
-  try {
-    tokenset = await authenticateclient({
-      client_id: process.env.PDK_CLIENT_ID,
-      client_secret: process.env.PDK_CLIENT_SECRET,
-      issuer: IDP_URI
-    });
-  } catch(err) {
-    debug(`There was an error authenticating: ${err.message}`);
-    return;
-  }
-
-  let authsession = makeSession(tokenset, url.resolve(IDP_URI, `api/`));
-
   // Connect to the panel and itemize asset info
   // Panel => InventoriedPanel
   const inventoryPanel = _.curry(async (authsession, { id, name, uri }) => {
@@ -74,8 +60,15 @@ const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
   });
 
   try {
+    let authsession = await makeSession({
+      client_id: process.env.PDK_CLIENT_ID,
+      client_secret: process.env.PDK_CLIENT_SECRET,
+      issuer: IDP_URI
+    }, authenticateclient, url.resolve(IDP_URI, `api/`));
+
     // OU pseudo id 'mine' is the authenticated user's root organization
     const assets = await inventoryOu(authsession, 'mine');
+
     // Write the inventory out to a file
     writeFile('./inventory.json', JSON.stringify(assets, null, 2), 'utf-8');
   } catch(err) {

@@ -1,17 +1,17 @@
 import url from 'url';
 import { getPanelToken } from './authApi';
-import { makeSession as makeAuthSession } from './session';
+import { makeSession } from './session';
 import io from 'socket.io-client';
 import Debug from 'debug';
 
 const debug = Debug('pdk:panelapi');
 
-export async function makeSession(authSession, {id, uri}) {
+export async function makePanelSession(authSession, {id, uri}) {
   debug('Creating panel session');
 
   // Set up a panel session
   const token = await getPanelToken(authSession, id);
-  const session = makeAuthSession(
+  const session = makeSession(
     token,
     url.resolve(uri, 'api/')
   );
@@ -59,4 +59,4 @@ export async function makeSession(authSession, {id, uri}) {
   return session;
 }
 
-export default {makeSession};
+export default { makePanelSession };

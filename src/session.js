@@ -2,6 +2,7 @@ import got from 'got';
 import url from 'url';
 import Debug from 'debug';
 import parseLink from 'parse-link-header'
+import authenticate from './authenticator'
 
 const debug = Debug('pdk:session');
 
@@ -12,9 +13,15 @@ const debug = Debug('pdk:session');
  * with the API by handling authentication concerns automatically as calls happen.
  *
  * @param {function} token_set The token set returned from the authentication process.
+ * @param {function} authenticate The authentication strategy to use, currently `authenticator` and `clientauthenticator`.
  * @param {string} baseUrl This base URL used for resolving relative URLs in the endpoint requests.
  */
-export function makeSession(token_set, baseUrl = 'https://accounts.pdk.io/api/') {
+export function makeSession(authopts, authenticate = authenticate, baseUrl = 'https://accounts.pdk.io/api/') {
+  if(typeof(authopts.refresh) === 'function')
+    const token_set = authopts
+  else
+    const token_set = await authenticate(authopts)
+
   // Curry some options to configure got for interacting with the API
   const options = {
     json: true,
