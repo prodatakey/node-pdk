@@ -16,7 +16,7 @@ const debug = Debug('pdk:session');
  * @param {function} authenticate The authentication strategy to use, currently `authenticator` and `clientauthenticator`.
  * @param {string} baseUrl This base URL used for resolving relative URLs in the endpoint requests.
  */
-export function makeSession(authopts, authenticate = authenticate, baseUrl = 'https://accounts.pdk.io/api/') {
+export async function makeSession(authopts, authenticate = authenticate, baseUrl = 'https://accounts.pdk.io/api/') {
   if(typeof(authopts.refresh) === 'function')
     const token_set = authopts
   else
