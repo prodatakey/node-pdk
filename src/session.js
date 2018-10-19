@@ -2,7 +2,7 @@ import got from 'got';
 import url from 'url';
 import Debug from 'debug';
 import parseLink from 'parse-link-header'
-import authenticate from './authenticator'
+import { authenticate } from './authenticator'
 
 const debug = Debug('pdk:session');
 
