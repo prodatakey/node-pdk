@@ -5,11 +5,12 @@
   "scripts": {
     "test": "mocha -r src/test-setup.js -r babel-register src/**/*.spec.js",
     "watch": "mocha -wr src/test-setup.js -r babel-register src/**/*.spec.js --inspect",
-    "build": "babel src --out-dir .",
+    "build": "rm -rf lib; babel src --out-dir lib",
     "bstart": "babel-node"
   },
   "author": "Joshua Perry <josh@pdk.io>",
   "license": "MIT",
+  "main": "lib/index.js",
   "dependencies": {
     "asyncp": "^0.8.0",
     "debug": "^3.0.1",

@@ -17,10 +17,11 @@ const debug = Debug('pdk:session');
  * @param {string} baseUrl This base URL used for resolving relative URLs in the endpoint requests.
  */
 export async function makeSession(authopts, authenticate = authenticate, baseUrl = 'https://accounts.pdk.io/api/') {
+  let token_set
   if(typeof(authopts.refresh) === 'function')
-    const token_set = authopts
+    token_set = authopts
   else
-    const token_set = await authenticate(authopts)
+    token_set = await authenticate(authopts)
 
   // Curry some options to configure got for interacting with the API
   const options = {
