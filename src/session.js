@@ -12,7 +12,7 @@ const debug = Debug('pdk:session')
  * The session is meant to be a long-lived abstraction that simplifies interaction
  * with the API by handling authentication concerns automatically as calls happen.
  *
- * @param {function} token_set The token set returned from the authentication process.
+ * @param {object} authopts Options for authenticating
  * @param {function} authenticate The authentication strategy to use, currently `authenticator` and `clientauthenticator`.
  * @param {string} baseUrl This base URL used for resolving relative URLs in the endpoint requests.
  */
@@ -69,20 +69,17 @@ export async function makeSession(authopts, authstrategy, baseUrl = 'https://acc
         // but things like excessive clock skew can throw that off.
 
         debug(`Forcing token set refresh`)
-
-        // We force the token_set to refresh here
         await token_set.refresh()
 
         debug(`Retrying API call with fresh token set`)
-        // Then retry the call
         resp = await call(resource, callopts)
+      } else {
+        // If we get here then lets rethrow this error for the caller to handle
+        throw err
       }
-
-      // If we get here then lets rethrow this error for the caller to handle
-      throw err
     }
 
-    // Add a count property for requests with an array body and a total count header
+    // Add a count property for responses with an array body and a total count header
     // This allows the call site to find the total number of paged items available on the server
     if(Array.isArray(resp.body) && 'x-total-count' in resp.headers) {
       resp.body.count = parseInt(resp.headers['x-total-count'])
