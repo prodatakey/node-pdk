@@ -26,7 +26,7 @@ Most of the operations with this client involve network or disk operations.
 Async operations are handled by promises which facilitate use of features like the `await` keyword.
 
 ```javascript
-import { makeSession, userauth } from 'pdk-client'
+import { makeSession, userauth } from '@pdk/client'
 
 try {
   const session = await makeSession(userauth({ client_id, client_secret }))
@@ -40,7 +40,7 @@ try {
 Using the promises directly is also supported (with naket require thrown in for good measure):
 
 ```javascript
-const { makeSession, userauth } = require('pdk-client')
+const { makeSession, userauth } = require('@pdk/client')
 
 makeSession(userauth({ client_id, client_secret }))
   .then(session => session('panels/10702AG'))
@@ -64,7 +64,7 @@ This session will automatically manage the authentication token lifetime, using 
 See the auth API documentation for operations and data types available.
 
 ```javascript
-import { makeSession, userauth } from 'pdk-client';
+import { makeSession, userauth } from '@pdk/client';
 
 try {
   const session = await makeSession(userauth({ client_id, client_secret }));
@@ -94,7 +94,7 @@ See the panel API documentation for operations and data types available.
 **Note**: The term *panel* in the documentation is synonymous with the PDK cloud node hardware.
 
 ```javascript
-import { makeSession, makePanelSession, userauth } from 'pdk';
+import { makeSession, makePanelSession, userauth } from '@pdk/client';
 
 // Authenticate and create a session with the auth API
 const session = await makeSession(userauth({ client_id, client_secret }));
@@ -140,7 +140,7 @@ stream.emit('command', {
 Applications that support the client credentials authentication flow can use the `clientauth` strategy, in a similar way to the `userauth` method.
 
 ```javascript
-import { makeSession, clientauth } from 'pdk';
+import { makeSession, clientauth } from '@pdk/client';
 
 // Authenticate and create a session with the auth API using client credentials
 const session = await makeSession(clientauth({ client_id, client_secret }));
@@ -149,7 +149,7 @@ const session = await makeSession(clientauth({ client_id, client_secret }));
 
 ## Developers
 
-If you want to use the client without messing with the guts, just add this module as an npm dependency and `import pdk from 'pdk';` (or `const pdk = require('pdk');` if you're not using ES6 modules).
+If you want to use the client without messing with the guts, just add this module as an npm dependency (`npm install --save @pdk/client`) and `import pdk from '@pdk/client';` (or `const pdk = require('@pdk/client');` if you're not using ES6 modules).
 
-This project uses babel to translate a couple features that haven't hitten node yet, mainly `async`/`await` and ES6 modules.
+This project uses babel to translate a couple features that haven't hitten node yet, ES6 modules.
 If changes are made to `src/` then `npm run build` needs to be run to create the output in `lib/` that can be run by node.

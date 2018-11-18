@@ -1,5 +1,5 @@
 {
-  "name": "@pdk/pdk-client",
+  "name": "@pdk/client",
   "version": "0.4.0",
   "description": "ProdataKey pdk.io API Client Library for Javascript",
   "scripts": {
