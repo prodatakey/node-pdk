@@ -1,34 +1,36 @@
-import { makePanelSession, makeSession } from 'pdk-client';
+import { makePanelSession, makeSession, userauth } from '../';
 import util from 'util';
+import Debug from 'debug'
 
-process.on('unhandledRejection', r => console.log(r));
+const debug = Debug('example:person');
 
 (async function () {
-  const authSession = await makeSession({
-      client_id: process.env.PDK_CLIENT_ID,
-      client_secret: process.env.PDK_CLIENT_SECRET,
-      issuer: 'https://testaccounts.pdk.io'
-  });
+  const authsession = await makeSession(userauth({
+    client_id: process.env.PDK_CLIENT_ID,
+    client_secret: process.env.PDK_CLIENT_SECRET,
+  }));
 
-  let panelSession = await makePanelSession(authSession, process.env.PDK_PANEL_ID);
+  // Get the panel then create an auth session to it
+  const panel = await authsession('panels/10702GA')
+  let panelsession = await makePanelSession(authsession, panel);
 
-  let people = await panelSession('persons');
-  console.log(util.inspect(people));
+  let people = await panelsession('persons');
+  debug(util.inspect(people));
 
   try {
-    let createPerson = await panelSession('persons', {
+    let person = await panelsession('persons', {
       body: {
         firstName: 'Foo',
         lastName: 'Bar'
       }
     });
 
-    console.log(util.inspect(createPerson));
+    debug(util.inspect(person));
 
   } catch (err) {
     if (err && err.response && err.response.body && err.response.body.message) {
-      console.log(err.response.body.message);
+      debug(err.response.body.message);
     }
-    console.log(util.inspect(err));
+    debug(util.inspect(err));
   }
 }());

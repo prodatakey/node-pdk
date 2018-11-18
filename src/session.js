@@ -2,7 +2,6 @@ import got from 'got'
 import url from 'url'
 import Debug from 'debug'
 import parseLink from 'parse-link-header'
-import { authenticate } from './authenticator'
 
 const debug = Debug('pdk:session')
 
@@ -12,27 +11,14 @@ const debug = Debug('pdk:session')
  * The session is meant to be a long-lived abstraction that simplifies interaction
  * with the API by handling authentication concerns automatically as calls happen.
  *
- * @param {object} authopts Options for authenticating
- * @param {function} authenticate The authentication strategy to use, currently `authenticator` and `clientauthenticator`.
- * @param {string} baseUrl This base URL used for resolving relative URLs in the endpoint requests.
+ * @param {function|object} strategy A configured authentication strategy to use when creating the session, currently `userauth` and `clientauth`. This can alternatively be an existing token_set previously retrieved directly from an auth strategy.
+ * @param {string} [baseUrl=https://accounts.pdk.io/api] - The base url used to when calling API endpoints
  */
-export async function makeSession(authopts, authstrategy, baseUrl = 'https://accounts.pdk.io/api/') {
-
-  // If optional `authstrategy` param is provided as a string
-  // it is meant as the optional `baseUrl` param, so shuffle the args
-  if(typeof(authstrategy) === 'string') {
-    baseUrl = authstrategy
-    authstrategy = undefined
-  }
-
-  // Set authstrategy default if it wasn't defined
-  authstrategy = authstrategy || authenticate
-
-  let token_set
-  if(typeof(authopts.refresh) === 'function')
-    token_set = authopts
-  else
-    token_set = await authstrategy(authopts)
+export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/api') {
+  const token_set =
+    typeof(strategy.refresh) === 'function' ?
+    strategy :
+    await strategy()
 
   // Curry some options to configure got for interacting with the API
   const options = {
@@ -90,27 +76,4 @@ export async function makeSession(authopts, authstrategy, baseUrl = 'https://acc
   }
 
   return session
-}
-
-// Sugar for setting paging querystring values and communicating paging
-// info back via the query reference parameter
-export const page = async (session, resource, query, callopts = {}) => {
-  // Make the call
-  const resp = await session(resource, { query: { page: 0, sort: 'asc', per_page: 100, ...query }, ...callopts })
-
-  // Set the next values into the paging context so the caller can call in a loop checking `more` on each iteration
-  if(resp.link && resp.link.next) {
-    query.page = resp.link.next.page
-    query.per_page = resp.link.next.per_page
-    query.more = true
-  } else {
-    query.more = false
-  }
-
-  return resp
-}
-
-export default {
-  makeSession,
-  page
 }

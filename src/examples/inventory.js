@@ -1,9 +1,6 @@
 import { writeFile } from 'fs';
 import url from 'url';
-import opener from 'opener';
-import {authenticate} from '../authenticator';
-import {makeSession} from '../session';
-import { getOu, getPanelToken } from '../authApi';
+import { makeSession, makePanelSession, userauth, getOu } from '../';
 import _ from 'lodash/fp';
 import p from 'asyncp';
 import Debug from 'debug';
@@ -16,10 +13,7 @@ const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
   // Panel => InventoriedPanel
   const inventoryPanel = _.curry(async (authsession, { id, name, uri }) => {
     // Create an authentication session to the panel's API
-    const panelsession = makeSession(
-      await getPanelToken(authsession, id),
-      url.resolve(uri, 'api/')
-    );
+    const panelsession = makePanelSession(authsession, { id, uri })
 
     // Get the list of configured devices
     let connected = false;
@@ -62,12 +56,14 @@ const IDP_URI = process.env.IDP_URI || 'https://accounts.pdk.io';
   });
 
   try {
-    const authsession = await makeSession({
-      client_id: process.env.PDK_CLIENT_ID,
-      client_secret: process.env.PDK_CLIENT_SECRET,
-      issuer: IDP_URI,
-      opener: opener
-    });
+    const authsession = await makeSession(
+      userauth({
+        client_id: process.env.PDK_CLIENT_ID,
+        client_secret: process.env.PDK_CLIENT_SECRET,
+        issuer: IDP_URI,
+      }),
+      url.resolve(IDP_URI, `api/`)
+    );
 
     // OU pseudo id 'mine' is the authenticated user's root organization
     const assets = await inventoryOu(authsession, 'mine');

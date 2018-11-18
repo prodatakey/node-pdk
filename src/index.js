@@ -1,3 +1,4 @@
-export * from './authenticator';
-export * from './session';
-export * from './panelApi';
+export * from './authenticators'
+export * from './session'
+export * from './page'
+export * from './panelApi'
