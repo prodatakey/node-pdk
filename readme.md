@@ -3,7 +3,7 @@
 This is the Javascript client for interacting with the PDK [auth](http://docs.pdkauthapi.apiary.io/) and [panel](http://docs.pdkapi.apiary.io/) APIs.
 
 This may be helpful as a guide even if you don't use Javascript.
-The APIs use a REST style HTTP JSON interface that is simple to use from nearly any lanugage with an intelligent HTTP library.
+The APIs use a REST style HTTP JSON interface that is simple to use from nearly any language with an intelligent HTTP library.
 
 **NB**: This client is still in beta and the interface may change in the future. Once 1.0 is pushed we will begin supporting a stable semver API.
 
@@ -16,60 +16,88 @@ In this case the Promise async interface would be used unless the host applicati
 
 ## Layout
 
-The `src/` directory contains the client library. In `src/examples/` find examples for using the API for various tasks.
+The `src/` directory contains the client library implementation before transpiling. In `src/examples/` are examples for using the API for various tasks.
 
 ## Usage
 
 ### Async Operations
 
 Most of the operations with this client involve network or disk operations.
-Async operations are simply handled by using the javacript `await` keyword.
+Async operations are handled by promises which facilitate use of features like the `await` keyword.
 
 ```javascript
-import { authenticate } from 'pdk';
-const tokenset = await authenticate(client_id, client_secret);
+import { makeSession, userauth } from 'pdk-client'
+
+try {
+  const session = await makeSession(userauth({ client_id, client_secret }))
+  const panel = await session('panels/10702AG')
+  console.log(panel)
+} catch(err) {
+  console.log(err)
+}
+```
+
+Using the promises directly is also supported (with naket require thrown in for good measure):
+
+```javascript
+const { makeSession, userauth } = require('pdk-client')
+
+makeSession(userauth({ client_id, client_secret }))
+  .then(session => session('panels/10702AG'))
+  .then(panel => {
+    console.log(panel)
+  })
+  .catch(err => console.log(err))
 ```
 
 ### Creating a session with the Auth API
 
-Once calling `authenticate` to get an authentication context, use `makesession` to create a session with the auth API.
-This session will automatically manage the authentication token lifetime, using a refresh token if available, otherwise it runs the browser authentication flow again.
+An authenticated session can be easily created against the authentication API by using the `makeSession` function.
+The `makeSession` function requires a configured authentication strategy. The two available strategies are currently `userauth` and `clientauth`.
 
-See the auth API documentation for operations and data types available here.
+The `userauth` strategy uses the system browser to authenticate the user and delegate access to the API consumer.
+
+The `clientauth` strategy directly authenticates the openid connect client and accesses the API as its proxy user.
+
+This session will automatically manage the authentication token lifetime, using a refresh token if available.
+
+See the auth API documentation for operations and data types available.
 
 ```javascript
-import { authenticate, makeSession } from 'pdk';
+import { makeSession, userauth } from 'pdk-client';
 
 try {
-  const session = await makeSession(await authenticate(client_id, client_secret));
+  const session = await makeSession(userauth({ client_id, client_secret }));
 } catch(err) {
   console.log(`Error authenticating: ${err.msg}`);
 }
 ```
 
-This `session` function is a thin facade around [got](https://github.com/sindresorhus/got) that allows easily making authenticated requests, options are passed on to got.
+The session function as a thin facade around [got](https://github.com/sindresorhus/got) that allows easily making authenticated requests, options are passed on to got.
+
+Return value is a Javascript object representing the response body documented in the API docs.
+The promise will be rejected (await calls will throw) if there is an error with the request.
 
 ```javascript
 // `mine` is the ID for the authenticated user's default organization
-let response = await session('ous/mine');
+const response = await session('ous/mine');
 ```
 
-The `response` is a Javascript object representing the response body documented in the API docs.
 
 ### Creating a session with a panel API
 
 Once an authenticated session is established with the auth API, it can be used to create an authenticated session to a specific panel.  
-This session will automatically manage the panel authentication token lifetime.
+This session will automatically manage the panel authentication token lifetime. This session is also a facade over the got library.
 
-See the panel API documentation for operations and data types available here.
+See the panel API documentation for operations and data types available.
 
 **Note**: The term *panel* in the documentation is synonymous with the PDK cloud node hardware.
 
 ```javascript
-import { authenticate, makeSession, makePanelSession } from 'pdk';
+import { makeSession, makePanelSession, userauth } from 'pdk';
 
 // Authenticate and create a session with the auth API
-const session = await makeSession(await authenticate(client_id, client_secret));
+const session = await makeSession(userauth({ client_id, client_secret }));
 
 // Get a panel document from the auth API
 const panel = await session('panels/1070BBB');
@@ -80,6 +108,7 @@ const panelsession = await makePanelSession(session, panel);
 // Retrieve an entity from the panel API
 const me = await panelsession('people/123');
 ```
+
 
 ### Connecting to the event stream of the panel API
 
@@ -105,30 +134,17 @@ stream.emit('command', {
 });
 ```
 
+
 ### Client Authentication
 
-Applications that support the client credentials authentication flow can use the `authenticateclient`, in the same way as the `authenticate` method.
+Applications that support the client credentials authentication flow can use the `clientauth` strategy, in a similar way to the `userauth` method.
 
 ```javascript
-import { authenticateclient, makesession } from 'pdk';
+import { makeSession, clientauth } from 'pdk';
 
-// Authenticate and create a session with the auth API
-const session = await makesession(await authenticateclient(client_id, client_secret));
+// Authenticate and create a session with the auth API using client credentials
+const session = await makeSession(clientauth({ client_id, client_secret }));
 ```
-
-### Functions
-
-const tokenset = function *authenticate* (
-  // This launches a user's browser and retrieves an authentication token
-  _clientId_: The oAuth client id issued for use,
-  _clientSecret_: The oAuth client secret issued,
-  _issuer_ (optional): The OpenID Connect provider to auth against,
-);
-
-const session = function *makesession* (
-  // This creates a session that allows making requests to the API endpoints
-  _tokenSet_: The `token_id` from the tokenset retrieved from `authenticate`,
-};
 
 
 ## Developers

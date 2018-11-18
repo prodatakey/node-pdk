@@ -1,12 +1,28 @@
 import { Issuer } from 'openid-client';
 import Debug from 'debug';
 
-let debug = Debug('pdk:clientauthenticator');
+let debug = Debug('pdk:auth:client');
 
 //FIXME: Remove this default http options setter after 'got' library will release new version
 Issuer.defaultHttpOptions = {form: true};
 
-export async function authenticateclient({ client_id, client_secret, issuer = 'https://accounts.pdk.io' }) {
+/**
+ * Authenticate as a client using the client credentials flow.
+ * This give the client permissions to operate as its pdk.io proxy user.
+ *
+ * @param {object} opts
+ * @param {string} opts.client_id The provided oauth client_id.
+ * @param {string} opts.client_secret The provided oauth client_secret.
+ * @param {string} [opts.issuer=https://accounts.pdk.io/api/] - The base issuer URL used for finding openid connect auth endpoints.
+ *
+ * @returns {function} A configured authentication strategy
+ */
+export const clientauth = ({
+  client_id,
+  client_secret,
+  issuer = 'https://accounts.pdk.io'
+}) =>
+async () => {
   debug(`Authenticating as client_id: ${client_id}`);
 
   const pdkIssuer = await Issuer.discover(issuer);

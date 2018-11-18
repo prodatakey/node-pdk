@@ -2,14 +2,34 @@ import { Issuer } from 'openid-client';
 import { createServer } from 'http';
 import defaultOpener from 'opener';
 import Debug from 'debug';
-import { authenticateclient } from './clientauthenticator';
 
-let debug = Debug('pdk:authenticator');
+let debug = Debug('pdk:auth:user');
 
-//FIXME: Remove this default http options setter after 'got' library will release new version
+//FIXME: Remove this default http options setter after 'got' library releases newest version
 Issuer.defaultHttpOptions = {form: true};
 
-export async function authenticate({ client_id, client_secret, scope = 'openid', issuer = 'https://accounts.pdk.io', opener = defaultOpener, refresh_token }) {
+/**
+ * Authenticate a user using the user auth flow. By default this will open the user's default browser and direct it to the authentication URI.
+ *
+ * @param {object} opts
+ * @param {string} opts.client_id The provided oauth client_id.
+ * @param {string} opts.client_secret The provided oauth client_secret.
+ * @param {function} [opts.opener=defaultOpener] - A function used to open the user's browser to execute the user flow. Defaults to opening the auth URI user's default browser.
+ * @param {string} [opts.issuer=https://accounts.pdk.io/api/] - The base issuer URL used for finding openid connect auth endpoints.
+ * @param {string} [opts.scope=openid] - Comma separated list of open id scopes to request. Must include `openid` in the list.
+ * @param {string} [refresh_token] - A previously-stored refresh token to prime the auth flow.
+ *
+ * @returns {function} A configured authentication strategy
+ */
+export const userauth = ({
+  client_id,
+  client_secret,
+  scope = 'openid',
+  issuer = 'https://accounts.pdk.io',
+  opener = defaultOpener,
+  refresh_token
+}) =>
+async () => {
   debug(`Authenticating id: ${client_id}`);
 
   const pdkIssuer = await Issuer.discover(issuer);
@@ -121,9 +141,3 @@ export async function authenticate({ client_id, client_secret, scope = 'openid',
     });
   }
 }
-
-export { authenticateclient };
-export default {
-  authenticate,
-  authenticateclient
-};

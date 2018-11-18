@@ -1,15 +1,16 @@
 {
   "name": "pdk-client",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "ProdataKey pdk.io API Client Library for Javascript",
   "scripts": {
     "test": "mocha -r src/test-setup.js -r babel-register src/**/*.spec.js",
     "watch": "mocha -wr src/test-setup.js -r babel-register src/**/*.spec.js --inspect",
-    "build": "babel src --out-dir .",
+    "build": "rm -rf lib; babel src --ignore src/test --out-dir lib",
     "bstart": "babel-node"
   },
   "author": "Joshua Perry <josh@pdk.io>",
   "license": "MIT",
+  "main": "lib/index.js",
   "dependencies": {
     "asyncp": "^0.8.0",
     "debug": "^3.0.1",
