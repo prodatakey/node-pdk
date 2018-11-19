@@ -45,7 +45,7 @@ export async function makePanelSession(authSession, {id, uri}) {
         // Reconnect the invalidToken message on the websocket
         socket.once('invalidToken', invalidHandler);
 
-        debug(`Stream token refreshed: ${err.message}`);
+        debug('Stream token refreshed');
       } catch(err) {
         debug(`Error refreshing stream token: ${err.message}`);
       }
