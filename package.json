@@ -14,7 +14,7 @@
   "dependencies": {
     "asyncp": "^0.8.0",
     "debug": "^3.2.6",
-    "got": "git+https://github.com/sindresorhus/got.git#c86706bd23277ba033abefaf92a9c8fa69f78eee",
+    "got": "^9.3.0",
     "opener": "^1.5.1",
     "openid-client": "^2.4.0",
     "parse-link-header": "^1.0.1",

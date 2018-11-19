@@ -5,9 +5,6 @@ import Debug from 'debug';
 
 let debug = Debug('pdk:auth:user');
 
-//FIXME: Remove this default http options setter after 'got' library releases newest version
-Issuer.defaultHttpOptions = {form: true};
-
 /**
  * Authenticate a user using the user auth flow. By default this will open the user's default browser and direct it to the authentication URI.
  *

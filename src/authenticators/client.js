@@ -3,9 +3,6 @@ import Debug from 'debug';
 
 let debug = Debug('pdk:auth:client');
 
-//FIXME: Remove this default http options setter after 'got' library will release new version
-Issuer.defaultHttpOptions = {form: true};
-
 /**
  * Authenticate as a client using the client credentials flow.
  * This give the client permissions to operate as its pdk.io proxy user.

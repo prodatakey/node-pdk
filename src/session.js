@@ -1,7 +1,8 @@
 import got from 'got'
-import url from 'url'
+import { URL } from 'url'
 import Debug from 'debug'
 import parseLink from 'parse-link-header'
+import { InvalidParameterError, TokenRefreshError } from './errors'
 
 const debug = Debug('pdk:session')
 
@@ -15,11 +16,20 @@ const debug = Debug('pdk:session')
  * @param {string} [baseUrl=https://accounts.pdk.io/api] - The base url used to when calling API endpoints
  */
 export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/api') {
-  if(typeof(strategy) !== 'function' && typeof(strategy.refresh) !== 'function')
-    throw new Error('A strategy or token_set must be provided')
+  // Test auth strategy for validity
+  if(!strategy || typeof(strategy) !== 'function' && typeof(strategy.refresh) !== 'function')
+    throw new InvalidParameterError('strategy', 'A strategy or token_set must be provided')
 
+  // Test the baseUrl for validity
+  try {
+    new URL(baseUrl)
+  } catch(err) {
+    throw new InvalidParameterError('baseUrl', 'Must be a valid URL')
+  }
+
+  // Set the token_set
   const token_set =
-    typeof(strategy.refresh) === 'function' ?
+    typeof(strategy.refresh) === 'function' ? // If this _is_ a token set, just set it
     strategy :
     await strategy()
 
@@ -39,43 +49,63 @@ export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/a
   // Simply returns only the body of a resource
   // person = session('people/123')
   const session = async (resource, callopts = {}) => {
-    let resp
+    // Check that the resource arg is a string
+    if(typeof(resource) !== 'string')
+      throw new InvalidParameterError('resource', 'must provide a valid relative Url')
 
-    const call = async (resource) => (
-      await freshHeaders(),
-      await got(url.resolve(baseUrl, resource), { ...options, ...callopts })
-    )
+    // Build the absolute call URL
+    const callUrl = new URL(resource, baseUrl)
 
+    // Check the validity of the call URL
+    // It should not have query string or hash added
+    if(callUrl.search || callUrl.hash)
+      throw new InvalidParameterError('resource', 'must not include querystring or hash, put them in callopts instead')
+
+    // Function to make the call with fresh headers
+    // and to enrich and project the response body
+    const call = async () => {
+      await freshHeaders()
+      const resp = await got(callUrl.toString(), { ...options, ...callopts })
+
+      // Add a count property for responses with an array body and a total count header
+      // This allows the call site to find the total number of paged items available on the server
+      if(Array.isArray(resp.body) && 'x-total-count' in resp.headers) {
+        resp.body.count = parseInt(resp.headers['x-total-count'])
+        resp.body.link = parseLink(resp.headers['link'])
+      }
+
+      return resp.body
+    }
+
+    // Attempt the call with a single retry after refreshing the token
+    // if the call fails with a 401
     try {
-      debug(`Sending API request ${resource}, ${JSON.stringify(callopts)}`)
-      resp = await call(resource, callopts)
+      debug(`Sending API request for ${resource}, ${JSON.stringify(callopts)}`)
+      return await call()
     } catch (err) {
       debug(`Error from API request ${JSON.stringify(err)}`)
 
-      if (err && err.statusCode === 401) {
+      if (err && err instanceof got.HTTPError && err.statusCode === 401) {
         // When we get a status 401 we are in need a valid tokenset
         // this can happen for a number of reasons, the token should update optimistically
         // but things like excessive clock skew can throw that off.
 
         debug(`Forcing token set refresh`)
-        await token_set.refresh()
+        try {
+          await token_set.refresh()
+        } catch(err) {
+          // Wrap errors refreshing the token into a specific error type
+          throw new TokenRefreshError(err)
+        }
 
+        // If this throws, the caller will get the actual error
         debug(`Retrying API call with fresh token set`)
-        resp = await call(resource, callopts)
+        return await call()
       } else {
         // If we get here then lets rethrow this error for the caller to handle
         throw err
       }
     }
-
-    // Add a count property for responses with an array body and a total count header
-    // This allows the call site to find the total number of paged items available on the server
-    if(Array.isArray(resp.body) && 'x-total-count' in resp.headers) {
-      resp.body.count = parseInt(resp.headers['x-total-count'])
-      resp.body.link = parseLink(resp.headers['link'])
-    }
-
-    return resp.body
   }
 
   return session
