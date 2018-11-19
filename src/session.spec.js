@@ -4,15 +4,17 @@ import { HTTPError } from 'got'
 
 const getuut = async ({
   body,
+  headers,
   got,
   auth,
   id_token,
   baseUrl,
   refresh,
-} = {}) => {
+} = { }) => {
   id_token = id_token || 'blah'
+  headers = headers || { }
   body = body || { foo: 'bar' }
-  got = got || sinon.stub().resolves({ body })
+  got = got || sinon.stub().resolves({ body, headers })
   refresh = refresh || sinon.stub().resolves()
 
   const tokenset = sinon.stub().resolves({ id_token })
@@ -44,6 +46,10 @@ describe('session', () => {
       uutstub = await getuut()
       session = uutstub.session
       got = uutstub.got
+    })
+
+    it('it should create the session function', () => {
+      expect(session).to.be.a('function')
     })
 
     it('it should call the auth strategy', () => {
@@ -149,6 +155,41 @@ describe('session', () => {
         })
       })
 
+    })
+  })
+
+  describe('when response is a list', () => {
+    let session, body, length
+
+    beforeEach(async () => {
+      length = 20
+      body = [1, 2, 3, 4]
+
+      uutstub = await getuut({ body, headers: {
+        'x-total-count': length,
+        link: '<https://example.com/things?page=3&per_page=100>; rel="next",<https://example.com/things?page=1&per_page=100>; rel="prev"'
+      } })
+      session = uutstub.session
+    })
+
+    it('should return the array body', async () => {
+      const body = await session('things')
+
+      body.should.be.an('array')
+      body.should.eql(body)
+    })
+
+    it('should add total count property to array', async () => {
+      const body = await session('things')
+
+      body.count.should.equal(length)
+    })
+
+    it('should parse link header', async () => {
+      const body = await session('things')
+
+      console.log(body.link)
+      expect(body.link).to.be.an('object')
     })
   })
 
