@@ -138,7 +138,7 @@ describe('session', () => {
           refresh.should.have.been.calledOnce()
         })
 
-        it('should throw when retry after refresh fails', () => {
+        it('should throw when retry fails after refresh', () => {
           const error = new HTTPError({ statusCode: 401 }, { host: 'example.com' })
           got.onFirstCall().rejects(error)
           got.onSecondCall().rejects(error)
@@ -188,7 +188,6 @@ describe('session', () => {
     it('should parse link header', async () => {
       const body = await session('things')
 
-      console.log(body.link)
       expect(body.link).to.be.an('object')
     })
   })
