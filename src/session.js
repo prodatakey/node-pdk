@@ -15,6 +15,9 @@ const debug = Debug('pdk:session')
  * @param {string} [baseUrl=https://accounts.pdk.io/api] - The base url used to when calling API endpoints
  */
 export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/api') {
+  if(typeof(strategy) !== 'function' && typeof(strategy.refresh) !== 'function')
+    throw new Error('A strategy or token_set must be provided')
+
   const token_set =
     typeof(strategy.refresh) === 'function' ?
     strategy :
@@ -35,10 +38,10 @@ export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/a
   // Return an async function that makes a request to an API url and returns the body of the response
   // Simply returns only the body of a resource
   // person = session('people/123')
-  const session = async (resource, callopts) => {
+  const session = async (resource, callopts = {}) => {
     let resp
 
-    const call = async (resource, callopts = {}) => (
+    const call = async (resource) => (
       await freshHeaders(),
       await got(url.resolve(baseUrl, resource), { ...options, ...callopts })
     )
