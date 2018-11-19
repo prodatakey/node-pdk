@@ -5,7 +5,7 @@
   "scripts": {
     "test": "mocha -r src/test/setup.js -r babel-register src/**/*.spec.js",
     "watch": "mocha -wr src/test/setup.js -r babel-register src/**/*.spec.js --inspect",
-    "build": "rm -rf lib; babel src --ignore src/test --out-dir lib",
+    "build": "rm -rf lib; babel src --out-dir lib --ignore 'src/test/,src/**/*.spec.js'",
     "bstart": "babel-node"
   },
   "author": "Joshua Perry <josh@pdk.io>",
