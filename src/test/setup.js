@@ -1,6 +1,6 @@
-chai = require('chai');
+global.chai = require('chai');
 
-chai
+global.chai
   .use(require('chai-as-promised'))
   .use(require('dirty-chai'))
   .use(require('sinon-chai'));
@@ -8,5 +8,5 @@ chai
 require('chai/register-expect');
 require('chai/register-should');
 
-sinon = require('sinon');
-proxyquire = require('proxyquire');
+global.sinon = require('sinon');
+global.proxyquire = require('proxyquire');
