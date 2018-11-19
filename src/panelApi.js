@@ -1,17 +1,17 @@
-import url from 'url';
-import { getPanelToken } from './authApi';
-import { makeSession } from './session';
-import io from 'socket.io-client';
-import Debug from 'debug';
+import url from 'url'
+import { makeSession } from './session'
+import { getPanelToken } from './authApi'
+import io from 'socket.io-client'
+import Debug from 'debug'
 
-const debug = Debug('pdk:panelapi');
+const debug = Debug('pdk:panelapi')
 
 export async function makePanelSession(authSession, {id, uri}) {
   debug('Creating panel session');
 
   // Set up a panel session
   const token = await getPanelToken(authSession, id);
-  const session = makeSession(
+  const session = await makeSession(
     token,
     url.resolve(uri, 'api/')
   );
@@ -33,23 +33,22 @@ export async function makePanelSession(authSession, {id, uri}) {
     // the invalidToken handler fires once and must be resubscribed after successful handling.
     // TODO: Set a timer to do this prospectively _before_ the token expires
     // Watch for an `invalidToken` message and respond with a `renewedToken` message
-    const invalidHandler = () => {
-      debug(`Got invalid Token event`);
+    const invalidHandler = async () => {
+      debug(`Got invalid Token stream message`);
 
-      // Force a token refresh
-      token.refresh()
-        .then(token)
-        .then(ts => {
-          debug(`Panel token refreshed, updating event stream token`);
-          id_token = ts.id_token;
-          socket.emit('renewedToken', { token: id_token });
+      try {
+        // Force a token refresh
+        await token.refresh()
+        const { id_token } = await token()
+        socket.emit('renewedToken', { token: id_token });
 
-          // Reconnect the invalidToken message on the websocket
-          socket.once('invalidToken', invalidHandler);
-        })
-        .catch(err => {
-          debug(`Error refreshing token: ${err.message}`);
-        });
+        // Reconnect the invalidToken message on the websocket
+        socket.once('invalidToken', invalidHandler);
+
+        debug(`Stream token refreshed: ${err.message}`);
+      } catch(err) {
+        debug(`Error refreshing stream token: ${err.message}`);
+      }
     };
     socket.once('invalidToken', invalidHandler);
 
