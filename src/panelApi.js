@@ -34,7 +34,7 @@ export async function makePanelSession(authSession, {id, uri}) {
     // TODO: Set a timer to do this prospectively _before_ the token expires
     // Watch for an `invalidToken` message and respond with a `renewedToken` message
     const invalidHandler = async () => {
-      debug(`Got invalid Token stream message`);
+      debug(`Got invalid panel token message from stream`);
 
       try {
         // Force a token refresh
@@ -44,8 +44,6 @@ export async function makePanelSession(authSession, {id, uri}) {
 
         // Reconnect the invalidToken message on the websocket
         socket.once('invalidToken', invalidHandler);
-
-        debug('Stream token refreshed');
       } catch(err) {
         debug(`Error refreshing stream token: ${err.message}`);
       }

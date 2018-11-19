@@ -1,3 +1,7 @@
+import Debug from 'debug'
+
+const debug = Debug('pdk:authapi')
+
 export async function getOu(session, id = 'mine') {
   return await session(`ous/${id}`);
 }
@@ -15,6 +19,8 @@ export async function getPanelToken(session, id) {
 
   let id_token;
   const token_set = async () => {
+    debug('getting panel token from tokenset')
+
     // If we don't have a token, lets get one
     if(!id_token) {
       await token_set.refresh();
@@ -28,7 +34,9 @@ export async function getPanelToken(session, id) {
   };
 
   token_set.refresh = async() => {
+    debug('refreshing panel token')
     id_token = (await session(`panels/${id}/token`, { method: 'POST' })).token;
+    debug('refreshed panel token')
   };
 
   return token_set;
