@@ -16,6 +16,16 @@ module.exports = {
   env: {
     node: true,
     es6: true,
-  }
+  },
+
+  // Overrides for test files
+  overrides: [{
+    files: ['src/*.spec.js'],
+    env: { mocha: true },
+    globals: {
+      sinon: true,
+      expect: true,
+    },
+  }],
 };
 
