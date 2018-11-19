@@ -15,7 +15,7 @@ const debug = Debug('pdk:session')
  * @param {function|object} strategy A configured authentication strategy to use when creating the session, currently `userauth` and `clientauth`. This can alternatively be an existing token_set previously retrieved directly from an auth strategy.
  * @param {string} [baseUrl=https://accounts.pdk.io/api] - The base url used to when calling API endpoints
  */
-export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/api') {
+export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/api/') {
   // Test auth strategy for validity
   if(!strategy || typeof(strategy) !== 'function' && typeof(strategy.refresh) !== 'function')
     throw new InvalidParameterError('strategy', 'A strategy or token_set must be provided')
