@@ -20,7 +20,7 @@ module.exports = {
 
   // Overrides for test files
   overrides: [{
-    files: ['src/*.spec.js'],
+    files: ['src/**/*.spec.js'],
     env: { mocha: true },
     globals: {
       sinon: true,
