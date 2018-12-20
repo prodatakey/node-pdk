@@ -96,14 +96,14 @@ async () => {
         //TODO: Send a "you may close this window" body and/or auto-close JS
         res.end()
 
-        // If a closer was provided, call it
-        closer && closer()
-
         // Ignore requests with no code and no error
         if(!params.code && !params.error) {
           debug(`Ignoring auth response with no code or error`)
           return
         }
+
+        // If a closer was provided, call it
+        closer && closer()
 
         // Got an auth response, shut the server down
         server.close()
