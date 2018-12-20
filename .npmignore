@@ -1,3 +1,6 @@
+run.sh
+testrun.sh
 .gitignore
+.editorconfig
 .eslintrc.js
 src/examples/
