@@ -138,10 +138,18 @@ describe('session', () => {
           refresh.should.have.been.calledOnce()
         })
 
+        it('should wait for pending token refresh', async () => {
+          got.onFirstCall().rejects(new HTTPError({ statusCode: 401 }, { host: 'example.com' }))
+
+          await session('potatoes')
+
+          got.should.have.been.calledTwice()
+          refresh.should.have.been.calledOnce()
+        })
+
         it('should throw when retry fails after refresh', () => {
           const error = new HTTPError({ statusCode: 401 }, { host: 'example.com' })
-          got.onFirstCall().rejects(error)
-          got.onSecondCall().rejects(error)
+          got.rejects(error)
 
           return session('potatoes').should.eventually.be.rejectedWith(error)
         })

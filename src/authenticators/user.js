@@ -52,15 +52,25 @@ async () => {
     return token_set
   };
 
+  let outstanding
   oauthtoken_set.refresh = async () => {
-    if(token_set.refresh_token) {
-      debug(`Refreshing with refresh token`)
-      token_set = await client.refresh(token_set.refresh_token)
+    if(!outstanding) {
+      if(token_set.refresh_token) {
+        debug(`Refreshing with refresh token`)
+        outstanding = client.refresh(token_set.refresh_token)
+      } else {
+        debug(`Refreshing with user flow`)
+        outstanding = doUserFlow()
+      }
+
+      token_set = await outstanding
+      outstanding = undefined
+
+      debug(`Got fresh token: ${JSON.stringify(token_set)}`)
     } else {
-      debug(`Refreshing with user flow`)
-      token_set = await doUserFlow()
+      debug(`Waiting for outstanding user flow token refresh`)
+      await outstanding
     }
-    debug(`Got fresh token: ${JSON.stringify(token_set)}`)
   }
 
   oauthtoken_set.revoke = async () => {
