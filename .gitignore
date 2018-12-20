@@ -1,4 +1,5 @@
 run.sh
+testrun.sh
 inventory.json
 node_modules/
 .idea

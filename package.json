@@ -3,17 +3,16 @@
   "version": "0.5.0",
   "description": "ProdataKey pdk.io API Client Library for Javascript",
   "scripts": {
-    "test": "mocha -r src/test/setup.js -r babel-register src/**/*.spec.js",
-    "watch": "mocha -wr src/test/setup.js -r babel-register src/**/*.spec.js --inspect",
-    "build": "rm -rf lib; babel src --out-dir lib --ignore 'src/test/,*.spec.js'",
-    "bstart": "babel-node"
+    "test": "mocha -r src/test/setup.js -r esm src/**/*.spec.js",
+    "watch": "mocha -wr src/test/setup.js -r esm src/**/*.spec.js --inspect"
   },
   "author": "Joshua Perry <josh@pdk.io>",
   "license": "MIT",
-  "main": "lib/index.js",
+  "main": "src/index.js",
   "dependencies": {
     "asyncp": "^0.8.0",
     "debug": "^3.2.6",
+    "esm": "^3.0.84",
     "got": "^9.3.0",
     "opener": "^1.5.1",
     "openid-client": "^2.4.0",
@@ -21,9 +20,6 @@
     "socket.io-client": "^2.1.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-plugin-syntax-object-rest-spread": "^6.13.0",
-    "babel-preset-env": "^1.7.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "dirty-chai": "^2.0.1",

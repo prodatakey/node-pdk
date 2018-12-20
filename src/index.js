@@ -1,5 +1,2 @@
-export * from './authenticators'
-export * from './session'
-export * from './page'
-export * from './panelApi'
-export * from './authApi'
+const require = require("esm")(module)
+module.exports = require("./main.js")
