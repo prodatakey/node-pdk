@@ -17,9 +17,12 @@ let debug = Debug('pdk:auth:client');
 export const clientauth = ({
   client_id,
   client_secret,
-  issuer = 'https://accounts.pdk.io'
+  issuer = 'https://accounts.pdk.io',
+  default_http_options = {}
 }) =>
 async () => {
+  Issuer.defaultHttpOptions = default_http_options;
+
   debug(`Authenticating as client_id: ${client_id}`);
 
   const pdkIssuer = await Issuer.discover(issuer);
