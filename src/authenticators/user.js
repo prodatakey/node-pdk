@@ -29,7 +29,8 @@ export const userauth = ({
   default_http_options = {}
 }) =>
 async () => {
-  Issuer.defaultHttpOptions = default_http_options
+  // merge provided default http options with PDK defaults and set it to the Issuer object
+  Issuer.defaultHttpOptions = Object.assign({timeout: 10000, retries: 1}, default_http_options)
 
   debug(`Authenticating id: ${client_id}`)
 
