@@ -25,9 +25,13 @@ export const userauth = ({
   issuer = 'https://accounts.pdk.io',
   opener = defaultOpener,
   closer,
-  refresh_token
+  refresh_token,
+  default_http_options = {},
 }) =>
 async () => {
+  // merge provided default http options with PDK defaults and set it to the Issuer object
+  Issuer.defaultHttpOptions = {timeout: 10000, retries: 1, ...default_http_options}
+
   debug(`Authenticating id: ${client_id}`)
 
   const pdkIssuer = await Issuer.discover(issuer)
