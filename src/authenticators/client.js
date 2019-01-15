@@ -18,11 +18,11 @@ export const clientauth = ({
   client_id,
   client_secret,
   issuer = 'https://accounts.pdk.io',
-  default_http_options = {}
+  default_http_options = {},
 }) =>
 async () => {
   // merge provided default http options with PDK defaults and set it to the Issuer object
-  Issuer.defaultHttpOptions = Object.assign({timeout: 10000, retries: 1}, default_http_options);
+  Issuer.defaultHttpOptions = {timeout: 10000, retries: 1, ...default_http_options}
 
   debug(`Authenticating as client_id: ${client_id}`);
 
