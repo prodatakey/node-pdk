@@ -65,6 +65,11 @@ export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/a
     // and to enrich and project the response body
     const call = async () => {
       await freshHeaders()
+      // clientOptions in callopts is a special object that may contain params for our custom logic
+      const returnRawResponse = callopts.clientOptions && callopts.clientOptions.returnRawResponse
+      delete callopts.clientOptions
+      // merge header values
+      callopts.headers && Object.assign(callopts.headers, options.headers)
       const resp = await got(callUrl.toString(), { ...options, ...callopts })
 
       // Add a count property for responses with an array body and a total count header
@@ -74,7 +79,7 @@ export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/a
         resp.body.link = parseLink(resp.headers['link'])
       }
 
-      return resp.body
+      return returnRawResponse ? resp : resp.body;
     }
 
     // Attempt the call with a single retry after refreshing the token
