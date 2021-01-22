@@ -22,7 +22,7 @@ export const clientauth = ({
 }) =>
 async () => {
   // merge provided default http options with PDK defaults and set it to the Issuer object
-  Issuer.defaultHttpOptions = {timeout: 10000, retries: 1, ...default_http_options}
+  Issuer.defaultHttpOptions = {timeout: 60000, retries: 1, ...default_http_options}
 
   debug(`Authenticating as client_id: ${client_id}`);
 
@@ -54,8 +54,16 @@ async () => {
 
       outstanding = client.grant({ grant_type: 'client_credentials' })
 
-      token_set = await outstanding
-      outstanding = undefined
+      try {
+        token_set = await outstanding
+        outstanding = undefined
+      } catch(err) {
+        outstanding = undefined
+        if (err && err.statusCode === 429) {
+          _sleep(4000);
+          await oauthtoken_set.refresh();
+        }
+      }
 
       debug(`Got fresh token: ${JSON.stringify(token_set)}`);
     } else {
@@ -73,4 +81,8 @@ async () => {
   // Force initial load of the oauthtoken_set
   await oauthtoken_set.refresh();
   return oauthtoken_set;
+}
+
+function _sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
