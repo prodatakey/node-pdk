@@ -60,7 +60,7 @@ async () => {
       } catch(err) {
         outstanding = undefined
         if (err && err.statusCode === 429) {
-          _sleep(4000);
+          await _sleep(1000);
           await oauthtoken_set.refresh();
         }
       }
