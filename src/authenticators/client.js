@@ -59,8 +59,9 @@ async () => {
         } catch(err) {
           if (err && err.statusCode === 429) {
             await _sleep(1000);
-            return grantWrapFunc
+            return await grantWrapFunc();
           }
+          throw err;
         }
       }
       outstanding = grantWrapFunc();
