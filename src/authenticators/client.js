@@ -52,17 +52,22 @@ async () => {
     if(!outstanding) {
       debug(`Getting token with client credentials`);
 
-      outstanding = client.grant({ grant_type: 'client_credentials' })
-
+      let grantWrapFunc = async () => {
+        let result = client.grant({ grant_type: 'client_credentials' })
+        try {
+          return await result;
+        } catch(err) {
+          if (err && err.statusCode === 429) {
+            await _sleep(1000);
+            return grantWrapFunc
+          }
+        }
+      }
+      outstanding = grantWrapFunc();
       try {
         token_set = await outstanding
+      } finally {
         outstanding = undefined
-      } catch(err) {
-        outstanding = undefined
-        if (err && err.statusCode === 429) {
-          await _sleep(1000);
-          await oauthtoken_set.refresh();
-        }
       }
 
       debug(`Got fresh token: ${JSON.stringify(token_set)}`);
