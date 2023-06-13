@@ -29,6 +29,24 @@ export async function makePanelSession(authSession, {id, uri}) {
       }
     });
 
+    socket.on('connect_error', async (err) => {
+      if (err.message === 'Authorization has failed.') {
+        debug('Unable to connect due to auth failure, refresh token and reconnect')
+        try {
+          // Force a token refresh
+          await token.refresh()
+          const { id_token: newToken } = await token()
+          id_token = newToken
+          socket.io.opts.query = {
+            token: newToken
+          }
+        } catch (err) {
+          debug(`Error refreshing stream token: ${err.message}`)
+        }
+        socket.connect()
+      }
+    })
+
     // In order to squelch multiple events while refreshing,
     // the invalidToken handler fires once and must be resubscribed after successful handling.
     // TODO: Set a timer to do this prospectively _before_ the token expires
@@ -39,8 +57,9 @@ export async function makePanelSession(authSession, {id, uri}) {
       try {
         // Force a token refresh
         await token.refresh()
-        const { id_token } = await token()
-        socket.emit('renewedToken', { token: id_token });
+        const { id_token: newToken } = await token()
+        socket.emit('renewedToken', { token: newToken });
+        id_token = newToken;
 
         // Reconnect the invalidToken message on the websocket
         socket.once('invalidToken', invalidHandler);
