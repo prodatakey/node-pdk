@@ -16,10 +16,14 @@ function getTokenRefreshInterval (token) {
   return Math.ceil(0.9 * tokenLifeTime)
 }
 
+function sleep (ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export async function makePanelSession(authSession, {id, uri}) {
   debug('Creating panel session');
 
-  let timeoutId; // needed to stop token refresh loop on 'disconnect' event
+  let isConnected = false; // needed to stop token refresh loop on 'disconnect' event
 
   // Set up a panel session
   const token = await getPanelToken(authSession, id);
@@ -34,6 +38,8 @@ export async function makePanelSession(authSession, {id, uri}) {
   const tokenRefreshInterval = getTokenRefreshInterval(id_token);
 
   async function tokenRefreshLoop (socket) {
+    await sleep(tokenRefreshInterval * 1000)
+
     try {
       await token.refresh();
       const { id_token: newToken } = await token();
@@ -48,28 +54,26 @@ export async function makePanelSession(authSession, {id, uri}) {
       debug(`Error refreshing stream token: ${err.message}`);
     }
 
-    timeoutId = setTimeout(
-      async () => await tokenRefreshLoop(socket),
-      tokenRefreshInterval
-    )
+    if (isConnected) {
+      await tokenRefreshLoop(socket);
+    }
   }
 
   session.createEventStream = function() {
     // Add the auth token to the socket.io connection URL querystring
     const socket = io(uri, { query: { token: id_token } });
 
-    // Run token refresh loop
-    timeoutId = setTimeout(
-      async () => await tokenRefreshLoop(socket),
-      tokenRefreshInterval
-    )
-      
     socket.on('disconnect', async (reason) => {
       if (reason !== 'io client disconnect') {
         return;
       }
   
-      clearTimeout(timeoutId);
+      isConnected = false;
+    })
+
+    socket.on('connect', () => {
+      isConnected = true
+      tokenRefreshLoop(socket)
     })
 
     // Update the token for reconnect attempts
