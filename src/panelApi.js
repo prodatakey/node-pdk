@@ -59,7 +59,7 @@ export async function makePanelSession(authSession, {id, uri}) {
     const socket = io(uri, { query: { token: id_token } });
 
     // Run token refresh loop
-    setTimeout(
+    timeoutId = setTimeout(
       async () => await tokenRefreshLoop(socket),
       tokenRefreshInterval
     )
