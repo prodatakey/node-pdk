@@ -62,7 +62,7 @@ export async function makePanelSession(authSession, {id, uri}) {
     setTimeout(
       async () => await tokenRefreshLoop(socket),
       tokenRefreshInterval
-      )
+    )
       
     socket.on('disconnect', async (reason) => {
       if (reason !== 'io client disconnect') {
