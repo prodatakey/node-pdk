@@ -3,27 +3,18 @@ import { makeSession } from './session'
 import { getPanelToken } from './authApi'
 import io from 'socket.io-client'
 import Debug from 'debug'
+import * as jose from 'jose'
 
 const debug = Debug('pdk:panelapi')
 
-function parseJwt (token) {
-  return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-}
-
 function getTokenRefreshInterval (token) {
-  const tokenPayload = parseJwt(token)
+  const tokenPayload = jose.decodeJwt(token)
   const tokenLifeTime = tokenPayload.exp - tokenPayload.iat
   return Math.ceil(0.9 * tokenLifeTime)
 }
 
-function sleep (ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export async function makePanelSession(authSession, {id, uri}) {
   debug('Creating panel session');
-
-  let isConnected = false; // needed to stop token refresh loop on 'disconnect' event
 
   // Set up a panel session
   const token = await getPanelToken(authSession, id);
@@ -34,46 +25,45 @@ export async function makePanelSession(authSession, {id, uri}) {
 
   // Cache the id_token so the non-async reconnect_attempt handler can get to it
   let { id_token } = await token();
+  let tokenRefreshInterval = getTokenRefreshInterval(id_token);
 
-  const tokenRefreshInterval = getTokenRefreshInterval(id_token);
-
-  async function tokenRefreshLoop (socket) {
-    await sleep(tokenRefreshInterval * 1000)
-
-    try {
-      await token.refresh();
-      const { id_token: newToken } = await token();
-
-      socket.emit('renewedToken', { token: newToken });
-
-      id_token = newToken;
-      socket.io.opts.query = {
-        token: newToken
-      }
-    } catch(err) {
-      debug(`Error refreshing stream token: ${err.message}`);
-    }
-
-    if (isConnected) {
-      await tokenRefreshLoop(socket);
-    }
+  async function refreshToken () {
+    await token.refresh();
+    id_token = (await token()).id_token;
+    tokenRefreshInterval = getTokenRefreshInterval(id_token)
+    return id_token;
   }
 
   session.createEventStream = function() {
     // Add the auth token to the socket.io connection URL querystring
     const socket = io(uri, { query: { token: id_token } });
+    let intervalId;
 
     socket.on('disconnect', async (reason) => {
       if (reason !== 'io client disconnect') {
         return;
       }
-  
-      isConnected = false;
+      clearInterval(intervalId)
+      intervalId = undefined
     })
 
     socket.on('connect', () => {
-      isConnected = true
-      tokenRefreshLoop(socket)
+      if (intervalId !== undefined) {
+        return
+      }
+
+      intervalId = setInterval(
+        async () => {
+          try {
+            const token = await refreshToken()
+            socket.emit('renewedToken', { token });
+            socket.io.opts.query = { token }
+          } catch(err) {
+            debug(`Error refreshing stream token: ${err.message}`);
+          }
+        }, 
+        tokenRefreshInterval * 1000
+      )
     })
 
     // Update the token for reconnect attempts
@@ -88,12 +78,8 @@ export async function makePanelSession(authSession, {id, uri}) {
         debug('Unable to connect due to auth failure, refresh token and reconnect')
         try {
           // Force a token refresh
-          await token.refresh()
-          const { id_token: newToken } = await token()
-          id_token = newToken
-          socket.io.opts.query = {
-            token: newToken
-          }
+          const token = await refreshToken()
+          socket.io.opts.query = { token }
         } catch (err) {
           debug(`Error refreshing stream token: ${err.message}`)
         }
@@ -109,10 +95,8 @@ export async function makePanelSession(authSession, {id, uri}) {
 
       try {
         // Force a token refresh
-        await token.refresh()
-        const { id_token: newToken } = await token()
-        socket.emit('renewedToken', { token: newToken });
-        id_token = newToken;
+        const token = await refreshToken()
+        socket.emit('renewedToken', { token });
 
         // Reconnect the invalidToken message on the websocket
         socket.once('invalidToken', invalidHandler);
