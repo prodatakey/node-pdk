@@ -1,8 +1,8 @@
-import proxyquire from 'proxyquire'
+import esmock from 'esmock'
 
 describe('client auth', () => {
   let clientauth, oidlib, oidissuer, oidclient, oidctoken
-  beforeEach(() => {
+  beforeEach(async () => {
     oidctoken = { id_token: '1234' }
 
     oidclient = {
@@ -17,8 +17,8 @@ describe('client auth', () => {
       Issuer: { discover: sinon.stub().resolves(oidissuer) }
     }
 
-    const module = proxyquire('./client', {
-      'openid-client': oidlib
+    const module = await esmock('./client.js', {
+      'openid-client': oidlib,
     })
 
     clientauth = module.clientauth({ client_id: 'weee', client_secret: 'orly?' })

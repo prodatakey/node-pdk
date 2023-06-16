@@ -1,4 +1,4 @@
-import { makePanelSession, makeSession, userauth } from '../';
+import { makePanelSession, makeSession, userauth } from '../index.js';
 import util from 'util';
 import Debug from 'debug'
 

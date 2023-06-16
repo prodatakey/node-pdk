@@ -5,17 +5,13 @@ module.exports = {
     'no-console': 0,
   },
 
-  parserOptions: {
-    ecmaVersion: 8,
-    sourceType: 'module',
-    ecmaFeatures: {
-      experimentalObjectRestSpread: true
-    }
-  },
-
   env: {
     node: true,
-    es6: true,
+    es2020: true,
+  },
+
+  parserOptions: {
+    sourceType: 'module',
   },
 
   // Overrides for test files

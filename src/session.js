@@ -2,7 +2,8 @@ import got from 'got'
 import { URL } from 'url'
 import Debug from 'debug'
 import parseLink from 'parse-link-header'
-import { InvalidParameterError, TokenRefreshError } from './errors'
+import { InvalidParameterError, TokenRefreshError } from './errors.js'
+import { inspect } from 'util'
 
 const debug = Debug('pdk:session')
 
@@ -17,8 +18,9 @@ const debug = Debug('pdk:session')
  */
 export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/api/') {
   // Test auth strategy for validity
-  if(!strategy || typeof(strategy) !== 'function' && typeof(strategy.refresh) !== 'function')
+  if(!strategy || typeof(strategy) !== 'function' && typeof(strategy.refresh) !== 'function') {
     throw new InvalidParameterError('strategy', 'A strategy or token_set must be provided')
+  }
 
   // Test the baseUrl for validity
   try {
@@ -88,9 +90,9 @@ export async function makeSession(strategy, baseUrl = 'https://accounts.pdk.io/a
       debug(`Sending API request for ${resource}, ${JSON.stringify(callopts)}`)
       return await call()
     } catch (err) {
-      debug(`Error from API request ${JSON.stringify(err)}`)
+      debug(`Error from API request ${inspect(err, false, null, true)}`)
 
-      if (err && err instanceof got.HTTPError && err.statusCode === 401) {
+      if (err && err instanceof got.HTTPError && err.response.statusCode === 401) {
         // When we get a status 401 we are in need a valid tokenset
         // this can happen for a number of reasons, the token should update optimistically
         // but things like excessive clock skew can throw that off.

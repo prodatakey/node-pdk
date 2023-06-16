@@ -1,12 +1,15 @@
-global.chai = require('chai');
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
+import dirtyChai from 'dirty-chai'
+import sinonChai from 'sinon-chai'
+import sinon from 'sinon'
 
-global.chai
-  .use(require('chai-as-promised'))
-  .use(require('dirty-chai'))
-  .use(require('sinon-chai'));
+import 'chai/register-expect.js'
+import 'chai/register-should.js'
 
-require('chai/register-expect');
-require('chai/register-should');
+chai
+  .use(chaiAsPromised)
+  .use(dirtyChai)
+  .use(sinonChai)
 
-global.sinon = require('sinon');
-global.proxyquire = require('proxyquire');
+global.sinon = sinon

@@ -1,6 +1,6 @@
 import { writeFile } from 'fs';
 import url from 'url';
-import { makeSession, makePanelSession, userauth, getOu } from '../';
+import { makeSession, makePanelSession, userauth, getOu } from '../index.js';
 import _ from 'lodash/fp';
 import p from 'asyncp';
 import Debug from 'debug';

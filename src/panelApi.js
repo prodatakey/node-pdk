@@ -1,6 +1,6 @@
 import url from 'url'
-import { makeSession } from './session'
-import { getPanelToken } from './authApi'
+import { makeSession } from './session.js'
+import { getPanelToken } from './authApi.js'
 import io from 'socket.io-client'
 import Debug from 'debug'
 
