@@ -1,4 +1,4 @@
-import { makeSession, makePanelSession, userauth } from '../';
+import { makeSession, makePanelSession, userauth } from '../index.js';
 import Debug from 'debug'
 
 const debug = Debug('example:event-stream');

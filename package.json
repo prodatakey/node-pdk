@@ -3,29 +3,31 @@
   "version": "0.7.2",
   "description": "ProdataKey pdk.io API Client Library for Javascript",
   "scripts": {
-    "test": "mocha -r src/test/setup.js -r esm \"src/**/*.spec.js\"",
-    "watch": "mocha -wr src/test/setup.js -r esm \"src/**/*.spec.js\" --inspect"
+    "test": "mocha -r src/test/setup.js --loader=esmock \"src/**/*.spec.js\"",
+    "watch": "mocha -wr src/test/setup.js \"src/**/*.spec.js\" --inspect",
+    "lint": "eslint ."
   },
   "author": "Joshua Perry <josh@pdk.io>",
   "license": "MIT",
   "main": "src/index.js",
+  "type": "module",
   "dependencies": {
     "asyncp": "^0.8.0",
-    "debug": "^3.2.6",
-    "esm": "^3.0.84",
-    "got": "^9.3.0",
+    "debug": "^4.3.4",
+    "got": "^13.0.0",
     "opener": "^1.5.1",
-    "openid-client": "^2.4.0",
-    "parse-link-header": "^1.0.1",
-    "socket.io-client": "^2.1.1"
+    "openid-client": "^5.4.2",
+    "parse-link-header": "^2.0.0",
+    "socket.io-client": "^4.6.2"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
+    "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "dirty-chai": "^2.0.1",
-    "mocha": "^4.1.0",
-    "proxyquire": "^1.8.0",
-    "sinon": "^4.5.0",
-    "sinon-chai": "^2.14.0"
+    "eslint": "^8.42.0",
+    "esmock": "^2.3.1",
+    "mocha": "^10.2.0",
+    "sinon": "^15.1.2",
+    "sinon-chai": "^3.7.0"
   }
 }

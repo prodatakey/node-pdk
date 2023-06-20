@@ -1,5 +1,5 @@
-import proxyquire from 'proxyquire'
-import { InvalidParameterError, TokenRefreshError } from './errors'
+import esmock from 'esmock'
+import { InvalidParameterError, TokenRefreshError } from './errors.js'
 import { HTTPError } from 'got'
 
 const getuut = async ({
@@ -14,15 +14,17 @@ const getuut = async ({
   id_token = id_token || 'blah'
   headers = headers || { }
   body = body || { foo: 'bar' }
-  got = got || sinon.stub().resolves({ body, headers })
   refresh = refresh || sinon.stub().resolves()
+
+  got = got || sinon.stub().resolves({ body, headers })
+  got.HTTPError = HTTPError
 
   const tokenset = sinon.stub().resolves({ id_token })
   tokenset.refresh = refresh
 
   auth = auth || (auth === null ? undefined : sinon.stub().resolves(tokenset))
 
-  const { makeSession } = proxyquire('./session', {
+  const { makeSession } = await esmock('./session.js', {
     got
   })
 
@@ -129,8 +131,17 @@ describe('session', () => {
           refresh = uutstub.refresh
         })
 
+        // Create a mock got.HTTPError
+        const makeError = (statusCode, statusMessage) => {
+          const response = { statusCode, statusMessage }
+          // got uses _onResponse to detect a request obj
+          const request = { response, _onResponse: 'blah' }
+          response.request = request
+          return new HTTPError(response)
+        }
+
         it('should refresh token and retry', async () => {
-          got.onFirstCall().rejects(new HTTPError({ statusCode: 401 }, { host: 'example.com' }))
+          got.onFirstCall().rejects(makeError(401, 'unauthorized'))
 
           await session('potatoes')
 
@@ -139,7 +150,7 @@ describe('session', () => {
         })
 
         it('should wait for pending token refresh', async () => {
-          got.onFirstCall().rejects(new HTTPError({ statusCode: 401 }, { host: 'example.com' }))
+          got.onFirstCall().rejects(makeError(401, 'unauthorized'))
 
           await session('potatoes')
 
@@ -148,7 +159,7 @@ describe('session', () => {
         })
 
         it('should throw when retry fails after refresh', () => {
-          const error = new HTTPError({ statusCode: 401 }, { host: 'example.com' })
+          const error = makeError(401, 'unauthorized')
           got.rejects(error)
 
           return session('potatoes').should.eventually.be.rejectedWith(error)
@@ -157,7 +168,7 @@ describe('session', () => {
         it('should throw when refresh fails', () => {
           const error = new Error('could not refresh token')
           refresh.onFirstCall().rejects(error)
-          got.onFirstCall().rejects(new HTTPError({ statusCode: 401 }, { host: 'example.com' }))
+          got.onFirstCall().rejects(makeError(401, 'unauthorized'))
 
           return session('potatoes').should.eventually.be.rejectedWith(TokenRefreshError)
         })
@@ -181,27 +192,27 @@ describe('session', () => {
     })
 
     it('should return the array body', async () => {
-      const body = await session('things')
+      const res = await session('things')
 
-      body.should.be.an('array')
-      body.should.eql(body)
+      res.should.be.an('array')
+      res.should.eql(body)
     })
 
     it('should add total count property to array', async () => {
-      const body = await session('things')
+      const res = await session('things')
 
-      body.count.should.equal(length)
+      res.count.should.equal(length)
     })
 
     it('should parse link header', async () => {
-      const body = await session('things')
+      const res = await session('things')
 
-      expect(body.link).to.be.an('object')
+      expect(res.link).to.be.an('object')
     })
   })
 
   describe('creating with custom baseUrl', () => {
-    let baseUrl = 'https://example.com'
+    const baseUrl = 'https://example.com'
 
     describe('when calling session', () => {
 
@@ -214,7 +225,7 @@ describe('session', () => {
         uutstub.got.should.have.been.calledWith(`${baseUrl}/${resource}`)
       })
 
-      it('should prepend custom baseUrl', async () => {
+      it('should reject non-string baseUrl', async () => {
         return getuut({ baseUrl: {} })
           .should.be.rejectedWith(InvalidParameterError)
       })
