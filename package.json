@@ -1,6 +1,6 @@
 {
   "name": "@pdk/client",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "ProdataKey pdk.io API Client Library for Javascript",
   "scripts": {
     "test": "mocha -r src/test/setup.js --loader=esmock \"src/**/*.spec.js\"",
